@@ -16,8 +16,8 @@ import {
    ============================================================ */
 
 // PASTE YOUR SUPABASE KEYS HERE
-const SUPABASE_URL = "https://behzhchjvybcbjgilotz.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJlaHpoY2hqdnliY2JqZ2lsb3R6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3OTEyMTEsImV4cCI6MjA5NDM2NzIxMX0.ELO28IdgfVv3qa8QuKbiInsZguwjBROc7aGCLmi3Twc";
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 // Initialize Supabase
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
