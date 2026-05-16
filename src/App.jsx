@@ -27,26 +27,6 @@ const IMAGE_MAX_MB = 3;
 const TARGET_PHOTO_MAX_MB = 2.5;
 const APP_VERSION = "1.4.0";
 
-const CHANGELOG = [
-  { version:"1.4.0", date:"2026-05-15", tag:"current", title:"Major update — admin, load-outs, supplies, for-sale, support, damage, photos", changes:[
-    { type:"added", text:"Admin role with user management and promotion controls." },
-    { type:"added", text:"Range Load Out builder with smart ammo suggestions." },
-    { type:"added", text:"Supplies Needed tab with check-off and archive." },
-    { type:"added", text:"For Sale tab — list firearms/add-ons and track sold archive." },
-    { type:"added", text:"Support tab with Terms, Privacy, and per-tab help docs." },
-    { type:"added", text:"Damage tracking per firearm with photos and severity flag." },
-    { type:"added", text:"Photo uploads for Firearms, Add-Ons, Range Log with validation." },
-    { type:"added", text:"Status pills on every firearm (Ready/Oil/Maintenance/Damaged)." },
-    { type:"added", text:"Insurance Manifest PDF export." },
-    { type:"changed", text:"Renamed: Ammo→Ammunition, Accessories→Add-Ons, Maintenance→Up-Keep." },
-    { type:"changed", text:"Up-Keep schedule expanded with 7 maintenance categories." },
-    { type:"fixed", text:"Email verification redirect now works for new accounts." },
-  ]},
-  { version:"1.3.0", date:"2026-05-15", tag:"", title:"Maintenance & dashboard", changes:[
-    { type:"added", text:"Maintenance tab, dashboard alerts, firearm photos." },
-  ]},
-];
-
 const uid = () => Math.random().toString(36).slice(2, 10);
 const today = () => new Date().toISOString().slice(0, 10);
 const daysBetween = (a, b) => Math.round((new Date(b) - new Date(a)) / 86400000);
@@ -1190,9 +1170,28 @@ function Admin({ currentUser, onHelp }) {
 }
 
 function Changelog({ onHelp }) {
+  const [changelog, setChangelog] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('/changelog.json')
+      .then(res => res.json())
+      .then(data => {
+        setChangelog(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Failed to load changelog:', err);
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) return <div className="tab"><Loader size={20} /> Loading changelog…</div>;
+  if (!changelog.length) return <div className="tab"><Empty icon={ScrollText} label="No changelog available" hint="" /></div>;
+
   return (
     <div className="tab">
-      <div className="changelog">{CHANGELOG.map((rel) => (
+      <div className="changelog">{changelog.map((rel) => (
         <div className="release" key={rel.version}>
           <div className="release-rail"><div className={`release-dot ${rel.tag === "current" ? "cur" : ""}`} /></div>
           <div className="release-body">
