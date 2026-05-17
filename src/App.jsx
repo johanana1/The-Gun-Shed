@@ -20,10 +20,14 @@ const SUPPLY_CATEGORIES = ["Cleaning Solvents / Degreasers","Lubricants / Oils /
 const DEFAULT_RANGE_ROUNDS = { Pistol: 100, Revolver: 50, Rifle: 60, Shotgun: 25, Other: 50 };
 const IMAGE_TYPES = "JPEG, PNG, WebP, GIF";
 const IMAGE_MAX_MB = 5;
-const APP_VERSION = "1.5.1";
+const APP_VERSION = "1.5.2";
 
 const CHANGELOG = [
-  { version:"1.5.1", date:"2026-05-17", tag:"current", title:"Major fixes and improvements — Range Log redesign, Safe Audit refactor, Firearms overhaul, Gemini chatbot, dashboard refresh", changes:[
+  { version:"1.5.2", date:"2026-05-17", tag:"current", title:"Critical fixes — For Sale filtering, photo uploads", changes:[
+    { type:"fixed", text:"Firearms moved to For Sale now disappear from Firearms tab and only appear in For Sale tab." },
+    { type:"fixed", text:"Photo uploads now work correctly with proper Supabase storage and signed URLs." },
+  ]},
+  { version:"1.5.1", date:"2026-05-17", tag:"", title:"Complete overhaul — Range Log redesign, Safe Audit, all fixes, Gemini chatbot", changes:[
     { type:"added", text:"Gemini AI chatbot — free floating assistant for questions and help." },
     { type:"added", text:"Photo uploads for firearms — capture images of your guns (5MB limit)." },
     { type:"added", text:"Range Log complete redesign — 'Go to Range' initiates active visit, multi-firearm support, per-caliber round tracking, range name saving." },
