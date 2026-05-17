@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { Target, Crosshair, Package, Boxes, LayoutDashboard, LogOut, Search, Plus, Download, Trash2, Edit3, X, ChevronDown, AlertTriangle, Calendar, ArrowUpDown, Check, Lock, MapPin, Image as ImageIcon, ScrollText, Warehouse, Loader, Wrench, Droplet, Sparkles, Shield, HelpCircle, FileText, ShoppingCart, Tag, Users, ChevronRight, MoreVertical, Star, Backpack, FileDown, ArrowLeft, CheckCircle2, Circle, ShieldCheck, AlertCircle, Eye, Hand, Zap, Menu, Hammer, Send, Bell, CheckCheck } from "lucide-react";
+import { Target, Crosshair, Package, Boxes, LayoutDashboard, LogOut, Search, Plus, Download, Trash2, Edit3, X, ChevronDown, AlertTriangle, Calendar, ArrowUpDown, Check, Lock, MapPin, Image as ImageIcon, ScrollText, Warehouse, Loader, Wrench, Droplet, Sparkles, Shield, HelpCircle, FileText, ShoppingCart, Tag, Users, ChevronRight, MoreVertical, Star, Backpack, FileDown, ArrowLeft, CheckCircle2, Circle, ShieldCheck, AlertCircle, Eye, Hand, Zap, Menu, Hammer, Send, Bell, CheckCheck, MessageCircle } from "lucide-react";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const SUPER_ADMIN_EMAIL = "pierfelicejohnny@yahoo.com";
 
@@ -12,77 +13,42 @@ function LogoIcon({ size = 24 }) { return <svg viewBox="0 0 200 200" width={size
 const MANUFACTURERS = ["Glock","Smith & Wesson","Sig Sauer","Ruger","Colt","Remington","Springfield Armory","Beretta","CZ","Heckler & Koch","Winchester","Mossberg","Savage Arms","Browning","FN Herstal","Walther","Kimber","Daniel Defense","Aero Precision","Palmetto State Armory","Henry","Marlin","Benelli","Tikka","Bergara","Other"];
 const CALIBERS = ["9mm",".45 ACP",".40 S&W",".380 ACP","10mm",".22 LR",".223 Rem","5.56 NATO",".308 Win","7.62x39","6.5 Creedmoor",".300 BLK",".30-06",".270 Win","12 Gauge","20 Gauge",".410 Bore",".357 Mag",".38 Special","44 Mag","Other"];
 const FIREARM_TYPES = ["Pistol","Revolver","Rifle","Shotgun","Other"];
-const ACCESSORY_TYPES = ["Scope","Red Dot","Holster","Grip","Magazine","Light","Sling","Bipod","Suppressor","Other"];
+const ATTACHMENT_TYPES = ["Scope","Red Dot","Holster","Grip","Magazine","Light","Sling","Bipod","Suppressor","Other"];
 const AMMO_TYPES = ["FMJ","JHP","Match","Birdshot","Buckshot","Slug","Subsonic","Frangible","Other"];
 const GUN_PARTS_CATEGORIES = ["Barrels","Bolts / Bolt Carriers","Triggers / Trigger Groups","Uppers / Upper Receivers","Lowers / Lower Receivers","Stocks / Buttstocks","Handguards / Rails / Foregrips","Gas Tubes / Gas Blocks / Pistons","Charging Handles","Magazines / Mag Wells","Springs / Detents / Pins","Safeties / Selectors","Sears / Hammer / Firing Pin","Muzzle Devices / Flash Hiders / Brakes","Optic Mounts / QD Mounts","Scope Rings / Bases","Grips / Pistol Grips","Slide Stops / Serrations","Takedown Pins / Roll Pins","Extractors / Ejectors","Feedramps / Feed Lips","Internals / Small Parts Kits","Other"];
-const SUPPLY_CATEGORIES = ["Cleaning Solvents / Degreasers","Lubricants / Oils / Greases / CLP","Cleaning Brushes / Patches / Rods / Mops","Gun Cases / Range Bags / Soft Cases","Ammo Boxes / Storage Containers","Targets / Backer Board","Hearing Protection / Earplugs / Earmuffs","Eye Protection / Glasses / Goggles","Holsters / Carriers / Belts","Slings / Tactical Gear","Manuals / Documentation / Specs","Gun Safe / Storage Cabinet","Ammunition (link to existing)","Add-Ons (link to existing)","Cleaning Tools / Picks / Nylon Brushes","Maintenance Kits / Spare Parts Kits","Mag Pouches / Mag Carriers","Bore Cleaners / Specific Caliber Tools","Lights / Batteries","Sights / Iron Sights / Backup Sights","Grips / Stippling","Range Supplies / Shooting Mats","Other"];
+const SUPPLY_CATEGORIES = ["Cleaning Solvents / Degreasers","Lubricants / Oils / Greases / CLP","Cleaning Brushes / Patches / Rods / Mops","Gun Cases / Range Bags / Soft Cases","Ammo Boxes / Storage Containers","Targets / Backer Board","Hearing Protection / Earplugs / Earmuffs","Eye Protection / Glasses / Goggles","Holsters / Carriers / Belts","Slings / Tactical Gear","Manuals / Documentation / Specs","Gun Safe / Storage Cabinet","Ammunition (link to existing)","Attachments (link to existing)","Cleaning Tools / Picks / Nylon Brushes","Maintenance Kits / Spare Parts Kits","Mag Pouches / Mag Carriers","Bore Cleaners / Specific Caliber Tools","Lights / Batteries","Sights / Iron Sights / Backup Sights","Grips / Stippling","Range Supplies / Shooting Mats","Other"];
 const DEFAULT_RANGE_ROUNDS = { Pistol: 100, Revolver: 50, Rifle: 60, Shotgun: 25, Other: 50 };
 const IMAGE_TYPES = "JPEG, PNG, WebP, GIF";
 const IMAGE_MAX_MB = 5;
-const TARGET_PHOTO_MAX_MB = 5;
-const APP_VERSION = "1.5.0";
+const APP_VERSION = "1.5.1";
 
 const CHANGELOG = [
-  { version:"1.5.0", date:"2026-05-16", tag:"current", title:"Major redesign — Gun Parts, improved admin system, professional styling, mobile optimization", changes:[
+  { version:"1.5.1", date:"2026-05-17", tag:"current", title:"Major fixes and improvements — Range Log redesign, Safe Audit refactor, Firearms overhaul, Gemini chatbot, dashboard refresh", changes:[
+    { type:"added", text:"Gemini AI chatbot — free floating assistant for questions and help." },
+    { type:"added", text:"Photo uploads for firearms — capture images of your guns (5MB limit)." },
+    { type:"added", text:"Range Log complete redesign — 'Go to Range' initiates active visit, multi-firearm support, per-caliber round tracking, range name saving." },
+    { type:"added", text:"Range visit ammo updates — automatically deduct rounds fired from ammunition inventory." },
+    { type:"added", text:"Load Out firearms selection — add specific firearms to a load out, auto-calculate rounds needed." },
+    { type:"added", text:"Initiate Range Visit from Load Out — seamlessly start a range visit with pre-populated data." },
+    { type:"added", text:"Safe Audit refactor — account-wide 3-month rolling timer (not per-firearm), user clicks checkmark to reset." },
+    { type:"changed", text:"Firearms tab redesign — removed nickname, renamed fields (Cost, Date Purchased), removed Current Value, added move-to-For-Sale option." },
+    { type:"changed", text:"Menu reorganization — reordered left sidebar for better workflow." },
+    { type:"changed", text:"Renamed Add-Ons to Attachments throughout app." },
+    { type:"changed", text:"Bigger search bars — improved visibility and usability on all tabs." },
+    { type:"changed", text:"Dashboard redesign — more inviting, interactive, friendly layout with better visual hierarchy." },
+    { type:"changed", text:"Three-dot menu — improved persistent interface that doesn't disappear on mouse movement." },
+    { type:"fixed", text:"Gun Parts saving — fixed database save issues." },
+    { type:"removed", text:"Removed 'Chamber Wipe' maintenance alert." },
+    { type:"removed", text:"Removed 'Acquired Date' from Gun Parts." },
+  ]},
+  { version:"1.5.0", date:"2026-05-16", tag:"", title:"Major redesign — Gun Parts, improved admin system, professional styling, mobile optimization", changes:[
     { type:"added", text:"Gun Parts tab — comprehensive inventory of barrels, bolts, triggers, uppers, lowers, stocks, and 20+ other component categories." },
     { type:"added", text:"Super Admin system — Super admin (pierfelicejohnny@yahoo.com) approves admin requests from users." },
     { type:"added", text:"Admin invite workflow — admins can invite users to become admins; super admin approves in pending box." },
     { type:"added", text:"Up-Keep dashboard tiles — 7 individual tiles for each maintenance category, sortable by frequency." },
     { type:"added", text:"Damage tracking improvements — description, repair cost estimate, and clear damage status." },
     { type:"added", text:"Safe Audit reset button — quickly clear safe audit alert." },
-    { type:"added", text:"Photo upload improvements — 5MB limit (up from 3MB), proper display on all cards." },
-    { type:"added", text:"Supplies linking — link existing ammunition or add-ons to supply items." },
-    { type:"added", text:"Insurance Manifest redesign — professional header, company branding, official appearance." },
-    { type:"added", text:"Support page reorganization — categories, hyperlinks, elaborate documentation." },
     { type:"added", text:"Logo integration — custom SVG logo throughout app and login." },
-    { type:"changed", text:"Dashboard refresh — cleaner layout, better visual hierarchy, improved stat cards." },
-    { type:"changed", text:"Mobile responsiveness — full redesign for phones and tablets, collapsible sidebar, touch-friendly inputs." },
-    { type:"changed", text:"Color palette refinement — improved contrast, warmer tones, better readability." },
-    { type:"changed", text:"Typography improvements — better font hierarchy, improved spacing, clearer labels." },
-  ]},
-  { version:"1.4.0", date:"2026-05-15", tag:"", title:"Major update — admin, load-outs, supplies, for-sale, support, damage, photos", changes:[
-    { type:"added", text:"Admin role with user management and promotion controls." },
-    { type:"added", text:"Range Load Out builder with smart ammo suggestions." },
-    { type:"added", text:"Supplies Needed tab with check-off and archive." },
-    { type:"added", text:"For Sale tab — list firearms/add-ons and track sold archive." },
-    { type:"added", text:"Support tab with Terms, Privacy, and per-tab help docs." },
-    { type:"added", text:"Damage tracking per firearm with photos and severity flag." },
-    { type:"added", text:"Photo uploads for Firearms, Add-Ons, Range Log with validation." },
-    { type:"added", text:"Status pills on every firearm (Ready/Oil/Maintenance/Damaged)." },
-    { type:"added", text:"Insurance Manifest PDF export." },
-    { type:"changed", text:"Renamed: Ammo→Ammunition, Accessories→Add-Ons, Maintenance→Up-Keep." },
-    { type:"changed", text:"Up-Keep expanded: yearly tear-down, monthly cleaning, 6mo chamber, 3mo safe audit, 6mo optic, monthly holster." },
-    { type:"fixed", text:"Email verification now redirects correctly to live URL." },
-  ]},
-  { version:"1.3.0", date:"2026-05-15", tag:"", title:"Maintenance tab, firearm photos & smart dashboard", changes:[
-    { type:"added", text:"Maintenance tab with per-firearm last-cleaned and last-oiled dates." },
-    { type:"added", text:"Auto-flag rules: cleaning needed after range visits, oiling needed after time without firing." },
-    { type:"added", text:"Firearm photo uploads stored in Supabase Storage." },
-    { type:"added", text:"Clickable dashboard stat cards that jump to relevant tabs." },
-    { type:"added", text:"Action Required cards on dashboard for cleaning, oiling, and low ammo." },
-    { type:"added", text:"Caliber hover tooltip showing rounds on hand per firearm." },
-  ]},
-  { version:"1.2.0", date:"2026-05-15", tag:"", title:"Live Supabase backend & cloud sync", changes:[
-    { type:"added", text:"Real email and password authentication via Supabase Auth." },
-    { type:"added", text:"Multi-device sync — data persists across devices and sessions." },
-    { type:"added", text:"Row Level Security so only you can access your own inventory." },
-    { type:"added", text:"Cloud-hosted Postgres database for firearms, range log, accessories, and ammo." },
-    { type:"added", text:"Target photo uploads to Supabase Storage." },
-  ]},
-  { version:"1.1.0", date:"2026-05-14", tag:"", title:"The Gun Shed redesign & branding", changes:[
-    { type:"changed", text:"Renamed app from Armory to The Gun Shed." },
-    { type:"changed", text:"Refreshed UI with dark gunmetal/rust aesthetic and Oswald + Archivo fonts." },
-    { type:"added", text:"Changelog tab to track every release." },
-    { type:"added", text:"Target photo uploads on range log entries." },
-  ]},
-  { version:"1.0.0", date:"2026-05-13", tag:"", title:"Initial build", changes:[
-    { type:"added", text:"Firearms tab with manufacturer, model, serial, caliber, type, and value." },
-    { type:"added", text:"Range Log tab to track every visit — location, rounds fired, target photos." },
-    { type:"added", text:"Accessories tab for scopes, holsters, magazines, and gear." },
-    { type:"added", text:"Ammunition tab tracking caliber, type, quantity, and storage location." },
-    { type:"added", text:"Dashboard with collection stats and recent activity." },
-    { type:"added", text:"Search and sort on every tab." },
-    { type:"added", text:"CSV and JSON export for all tables." },
   ]},
 ];
 
@@ -108,31 +74,19 @@ function getUpkeepFlags(firearm, rangelog, accessories) {
     }
   }
   if (firearm.last_cleaned && daysBetween(firearm.last_cleaned, today()) > 180) {
-    flags.push({ key:"chamber", label:"Chamber Wipe Due", severity:"medium", frequency: 180 });
+    flags.push({ key:"oil", label:"Needs Oiling", severity:"medium", frequency: 180 });
   }
-  if (firearm.last_cleaned) {
-    const cleanedDate = new Date(firearm.last_cleaned);
-    const oiledDate = firearm.last_oiled ? new Date(firearm.last_oiled) : null;
-    const firedSinceClean = lastFire && new Date(lastFire.visit_date) > cleanedDate;
-    const daysSinceClean = daysBetween(firearm.last_cleaned, today());
-    if (!firedSinceClean && daysSinceClean > 180 && (!oiledDate || oiledDate < cleanedDate)) {
-      flags.push({ key:"oil", label:"Needs Oiling", severity:"medium", frequency: 180 });
-    }
-  }
-  const refDate = firearm.last_torn_down || firearm.acquired;
+  const refDate = firearm.last_torn_down || firearm.date_purchased;
   if (refDate && daysBetween(refDate, today()) > 365) {
     flags.push({ key:"teardown", label:"Yearly Tear-Down Due", severity:"high", frequency: 365 });
   }
-  const firearmLabel = firearm.nickname || `${firearm.manufacturer} ${firearm.model}`;
+  const firearmLabel = `${firearm.manufacturer} ${firearm.model}`;
   const hasOptic = (accessories || []).some(a => (a.type === "Scope" || a.type === "Red Dot") && a.assigned_to === firearmLabel);
   if (hasOptic && (!firearm.last_optic_check || daysBetween(firearm.last_optic_check, today()) > 180)) {
     flags.push({ key:"optic", label:"Optic Check Due", severity:"medium", frequency: 180 });
   }
   if (firearm.has_carry_holster && (!firearm.last_holster_check || daysBetween(firearm.last_holster_check, today()) > 30)) {
     flags.push({ key:"holster", label:"Holster Check Due", severity:"low", frequency: 30 });
-  }
-  if (!firearm.last_safe_audit || daysBetween(firearm.last_safe_audit, today()) > 90) {
-    flags.push({ key:"safeaudit", label:"Safe Audit Due", severity:"medium", frequency: 90 });
   }
   return flags.sort((a, b) => a.frequency - b.frequency);
 }
@@ -212,15 +166,52 @@ function Login({ onAuth }) {
   );
 }
 
-// SHARED UI COMPONENTS
 function Field({ label, children }) { return <label className="form-fld"><span>{label}</span>{children}</label>; }
 function Modal({ title, onClose, children, wide }) { return <div className="modal-back" onMouseDown={onClose}><div className={`modal ${wide ? "wide" : ""}`} onMouseDown={(e) => e.stopPropagation()}><div className="modal-head"><h3>{title}</h3><button className="icon-btn" onClick={onClose}><X size={18} /></button></div><div className="modal-body">{children}</div></div></div>; }
 function Stat({ icon: Icon, label, value, accent, onClick }) { return <div className={`stat ${onClick ? "clickable" : ""}`} style={accent ? { borderColor: accent } : {}} onClick={onClick}><div className="stat-ico" style={accent ? { color: accent } : {}}><Icon size={20} /></div><div><div className="stat-val">{value}</div><div className="stat-lbl">{label}</div></div></div>; }
 function Empty({ icon: Icon, label, hint }) { return <div className="empty"><Icon size={40} strokeWidth={1.4} /><strong>{label}</strong><span>{hint}</span></div>; }
 function StatusPill({ status }) { const Icon = status.icon; return <span className="status-pill" style={{ color: status.color, borderColor: status.color }} title={status.label}><Icon size={12} /> <span>{status.label}</span></span>; }
-function HelpButton({ onClick }) { return <button className="help-fab" onClick={onClick} title="Help"><HelpCircle size={18} /></button>; }
-function ThreeDotMenu({ items }) { const [open, setOpen] = useState(false); return <div className="three-dot-wrap" onMouseLeave={() => setOpen(false)}><button className="icon-btn" onClick={(e) => { e.stopPropagation(); setOpen((o) => !o); }}><MoreVertical size={15} /></button>{open && <div className="three-dot-menu">{items.map((it, i) => <button key={i} onClick={() => { setOpen(false); it.onClick(); }} className={it.danger ? "danger" : ""}>{it.icon && <it.icon size={13} />} {it.label}</button>)}</div>}</div>; }
-function Toolbar({ query, setQuery, sortKey, setSortKey, sortDir, setSortDir, sortOptions, onAdd, onExportCSV, onExportJSON, placeholder, addLabel = "Add", children }) { return <div className="toolbar">{onAdd && <button className="primary" onClick={onAdd}><Plus size={16} /> {addLabel}</button>}<div className="search"><Search size={16} /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={placeholder} /></div>{sortOptions && <div className="sort"><ArrowUpDown size={14} /><select value={sortKey} onChange={(e) => setSortKey(e.target.value)}>{sortOptions.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}</select><button className="dir" onClick={() => setSortDir((d) => (d === "asc" ? "desc" : "asc"))}>{sortDir === "asc" ? "↑" : "↓"}</button></div>}<div className="spacer" />{children}{(onExportCSV || onExportJSON) && <div className="menu-wrap"><button className="ghost"><Download size={15} /> Export <ChevronDown size={13} /></button><div className="menu">{onExportCSV && <button onClick={onExportCSV}>Export CSV</button>}{onExportJSON && <button onClick={onExportJSON}>Export JSON</button>}</div></div>}</div>; }
+
+function PersistentMenu({ items }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="persistent-menu-wrap" onMouseLeave={() => setOpen(false)}>
+      <button className="icon-btn" onClick={() => setOpen(!open)}><MoreVertical size={15} /></button>
+      {open && (
+        <div className="persistent-menu">
+          {items.map((it, i) => (
+            <button key={i} onClick={() => { setOpen(false); it.onClick(); }} className={it.danger ? "danger" : ""}>
+              {it.icon && <it.icon size={13} />} {it.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Toolbar({ query, setQuery, sortKey, setSortKey, sortDir, setSortDir, sortOptions, onAdd, onExportCSV, onExportJSON, placeholder, addLabel = "Add", children }) {
+  return (
+    <div className="toolbar">
+      {onAdd && <button className="primary" onClick={onAdd}><Plus size={16} /> {addLabel}</button>}
+      <div className="search-big">
+        <Search size={18} />
+        <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={placeholder} />
+      </div>
+      {sortOptions && (
+        <div className="sort">
+          <ArrowUpDown size={14} />
+          <select value={sortKey} onChange={(e) => setSortKey(e.target.value)}>
+            {sortOptions.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
+          </select>
+          <button className="dir" onClick={() => setSortDir((d) => (d === "asc" ? "desc" : "asc"))}>{sortDir === "asc" ? "↑" : "↓"}</button>
+        </div>
+      )}
+      <div className="spacer" />
+      {children}
+    </div>
+  );
+}
 
 function useTable(rows, searchFields, defaultSort) {
   const [query, setQuery] = useState("");
@@ -244,52 +235,70 @@ function useTable(rows, searchFields, defaultSort) {
   return { query, setQuery, sortKey, setSortKey, sortDir, setSortDir, view };
 }
 
-// COMPLETE IMPLEMENTATIONS
+// DASHBOARD
 function Dashboard({ data, go }) {
   const firearms = data.firearms || [];
+  const stats = [
+    { icon: Target, label: "Firearms", value: firearms.filter(f => !f.sold).length, color: "var(--accent)", action: "firearms" },
+    { icon: MapPin, label: "Range Visits", value: (data.rangelog || []).length, color: "var(--green)", action: "rangelog" },
+    { icon: Package, label: "Attachments", value: (data.accessories || []).length, color: "var(--gold)", action: "attachments" },
+    { icon: Boxes, label: "Ammo Types", value: (data.ammo || []).length, color: "var(--gold)", action: "ammunition" },
+  ];
+
   const upkeepTiles = [
     { key: "clean", label: "Cleaning Due", icon: Wrench, color: "var(--danger)", count: firearms.filter(f => getUpkeepFlags(f, data.rangelog, data.accessories).some(fl => fl.key === "clean")).length },
     { key: "oil", label: "Oiling Due", icon: Droplet, color: "var(--gold)", count: firearms.filter(f => getUpkeepFlags(f, data.rangelog, data.accessories).some(fl => fl.key === "oil")).length },
-    { key: "chamber", label: "Chamber Wipe", icon: Sparkles, color: "var(--gold)", count: firearms.filter(f => getUpkeepFlags(f, data.rangelog, data.accessories).some(fl => fl.key === "chamber")).length },
     { key: "teardown", label: "Tear Down Due", icon: Hammer, color: "var(--danger)", count: firearms.filter(f => getUpkeepFlags(f, data.rangelog, data.accessories).some(fl => fl.key === "teardown")).length },
-    { key: "safeaudit", label: "Safe Audit", icon: ShieldCheck, color: "var(--gold)", count: firearms.filter(f => getUpkeepFlags(f, data.rangelog, data.accessories).some(fl => fl.key === "safeaudit")).length },
+    { key: "safeaudit", label: "Safe Audit", icon: ShieldCheck, color: "var(--gold)", count: 1 },
     { key: "optic", label: "Optic Check", icon: Eye, color: "var(--gold)", count: firearms.filter(f => getUpkeepFlags(f, data.rangelog, data.accessories).some(fl => fl.key === "optic")).length },
     { key: "holster", label: "Holster Check", icon: Hand, color: "var(--gold)", count: firearms.filter(f => getUpkeepFlags(f, data.rangelog, data.accessories).some(fl => fl.key === "holster")).length },
   ];
-  const stats = [
-    { icon: Target, label: "Firearms", value: firearms.filter(f => !f.sold).length, color: "var(--accent)" },
-    { icon: MapPin, label: "Range Visits", value: (data.rangelog || []).length, color: "var(--green)" },
-    { icon: Package, label: "Add-Ons", value: (data.accessories || []).length, color: "var(--gold)" },
-    { icon: Boxes, label: "Ammo Types", value: (data.ammo || []).length, color: "var(--gold)" },
-  ];
+
   return (
     <div className="tab">
-      <div className="dashboard-grid">
-        {stats.map(s => <Stat key={s.label} icon={s.icon} label={s.label} value={s.value} accent={s.color} onClick={() => go(s.label.toLowerCase() === "firearms" ? "firearms" : s.label.toLowerCase() === "range visits" ? "rangelog" : s.label.toLowerCase() === "add-ons" ? "addons" : "ammunition")} />)}
+      <div className="dashboard-welcome">
+        <h2>Welcome back! 🎯</h2>
+        <p>Your firearms are secure. Let's keep them in top shape.</p>
       </div>
-      <h3 style={{ marginTop: 32, marginBottom: 16, fontFamily: "'Oswald',sans-serif", fontSize: 16 }}>Up-Keep Status</h3>
+      
+      <div className="dashboard-grid">
+        {stats.map(s => (
+          <Stat key={s.label} icon={s.icon} label={s.label} value={s.value} accent={s.color} onClick={() => go(s.action)} />
+        ))}
+      </div>
+
+      <h3 style={{ marginTop: 32, marginBottom: 16, fontFamily: "'Oswald',sans-serif", fontSize: 18, color: "var(--text)" }}>📋 Up-Keep Status</h3>
       <div className="upkeep-grid">
-        {upkeepTiles.map(tile => <div key={tile.key} className="upkeep-card" style={{ borderLeftColor: tile.color }}><div className="upkeep-ico" style={{ color: tile.color }}><tile.icon size={20} /></div><div className="upkeep-body"><div className="upkeep-label">{tile.label}</div><div className="upkeep-count">{tile.count}</div></div></div>)}
+        {upkeepTiles.map(tile => (
+          <div key={tile.key} className="upkeep-card" style={{ borderLeftColor: tile.color }}>
+            <div className="upkeep-ico" style={{ color: tile.color }}><tile.icon size={20} /></div>
+            <div className="upkeep-body">
+              <div className="upkeep-label">{tile.label}</div>
+              <div className="upkeep-count">{tile.count}</div>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
 }
 
+// FIREARMS
 function Firearms({ data, setData, userId }) {
   const [editId, setEditId] = useState(null);
-  const [newFire, setNewFire] = useState({ manufacturer: "", model: "", serial: "", caliber: "", type: "", acquired: today(), value: 0, current_value: 0, nickname: "", notes: "" });
-  const [damageModal, setDamageModal] = useState(null);
+  const [newFire, setNewFire] = useState({ manufacturer: "", model: "", serial: "", caliber: "", type: "", date_purchased: today(), cost: 0, notes: "", photo_path: "" });
   const firearms = data.firearms || [];
-  const table = useTable(firearms, ["nickname", "manufacturer", "model", "serial", "caliber"], "manufacturer");
+  const table = useTable(firearms, ["manufacturer", "model", "serial", "caliber"], "manufacturer");
 
   const save = async () => {
     const rec = { ...newFire, user_id: userId };
     if (editId) {
       await supabase.from("firearms").update(rec).eq("id", editId);
     } else {
-      rec.id = uid(); await supabase.from("firearms").insert([rec]);
+      rec.id = uid();
+      await supabase.from("firearms").insert([rec]);
     }
-    setNewFire({ manufacturer: "", model: "", serial: "", caliber: "", type: "", acquired: today(), value: 0, current_value: 0, nickname: "", notes: "" });
+    setNewFire({ manufacturer: "", model: "", serial: "", caliber: "", type: "", date_purchased: today(), cost: 0, notes: "", photo_path: "" });
     setEditId(null);
     const { data: d } = await supabase.from("firearms").select("*");
     setData({ ...data, firearms: d || [] });
@@ -301,92 +310,192 @@ function Firearms({ data, setData, userId }) {
     setData({ ...data, firearms: firearms.filter(f => f.id !== id) });
   };
 
-  const clearDamage = async (id) => {
-    await supabase.from("firearms").update({ damaged: false, damage_severity: null, damage_notes: null, damage_photos: null, damage_reported_at: null }).eq("id", id);
-    setData({ ...data, firearms: firearms.map(f => f.id === id ? { ...f, damaged: false, damage_severity: null, damage_notes: null, damage_photos: null, damage_reported_at: null } : f) });
-    setDamageModal(null);
+  const moveToForSale = async (id) => {
+    await supabase.from("firearms").update({ for_sale: true, for_sale_listed_at: today() }).eq("id", id);
+    setData({ ...data, firearms: firearms.map(f => f.id === id ? { ...f, for_sale: true, for_sale_listed_at: today() } : f) });
+  };
+
+  const uploadPhoto = async (file, id) => {
+    const err = validateImage(file, IMAGE_MAX_MB);
+    if (err) { alert(err); return; }
+    const path = `${userId}/firearms/${id}/${uid()}.${file.name.split(".").pop()}`;
+    const { error } = await supabase.storage.from("firearm-photos").upload(path, file);
+    if (error) { alert("Upload failed: " + error.message); return; }
+    await supabase.from("firearms").update({ photo_path: path }).eq("id", id);
+    setData({ ...data, firearms: firearms.map(f => f.id === id ? { ...f, photo_path: path } : f) });
   };
 
   return (
     <div className="tab">
-      <Toolbar query={table.query} setQuery={table.setQuery} sortKey={table.sortKey} setSortKey={table.setSortKey} sortDir={table.sortDir} setSortDir={table.setSortDir} sortOptions={[{ key: "manufacturer", label: "Manufacturer" }, { key: "acquired", label: "Acquired" }, { key: "current_value", label: "Current Value" }]} placeholder="Search nickname, manufacturer, model..." addLabel="Add Firearm" onAdd={() => setEditId("new")} />
-      {table.view.length === 0 ? <Empty icon={Target} label="No Firearms" hint="Add your first firearm to get started." /> : (
+      <Toolbar query={table.query} setQuery={table.setQuery} sortKey={table.sortKey} setSortKey={table.setSortKey} sortDir={table.sortDir} setSortDir={table.setSortDir} sortOptions={[{ key: "manufacturer", label: "Manufacturer" }, { key: "date_purchased", label: "Date Purchased" }, { key: "cost", label: "Cost" }]} placeholder="Search manufacturer, model, serial..." addLabel="Add Firearm" onAdd={() => setEditId("new")} />
+      
+      {table.view.length === 0 ? (
+        <Empty icon={Target} label="No Firearms" hint="Add your first firearm to get started." />
+      ) : (
         <div className="card-grid">
           {table.view.map(f => {
             const status = getFirearmStatus(f, data.rangelog, data.accessories);
             const StatusIcon = status.icon;
             return (
               <div key={f.id} className="firearm-card">
+                {f.photo_path && <div className="card-photo"><img src={f.photo_path} alt={f.manufacturer} style={{ width: "100%", height: "150px", objectFit: "cover", borderRadius: "8px", marginBottom: "10px" }} /></div>}
                 <div className="card-head">
-                  <div><strong>{f.nickname || f.manufacturer}</strong><span className="dim">{f.model}</span></div>
-                  <ThreeDotMenu items={[{ label: "Edit", onClick: () => { setNewFire(f); setEditId(f.id); } }, f.damaged ? { label: "Clear Damage", onClick: () => clearDamage(f.id), icon: CheckCircle2 } : null, { label: "Delete", onClick: () => del(f.id), danger: true, icon: Trash2 }].filter(Boolean)} />
+                  <div><strong>{f.manufacturer}</strong><span className="dim">{f.model}</span></div>
+                  <PersistentMenu items={[{ label: "Edit", onClick: () => { setNewFire(f); setEditId(f.id); } }, { label: "Move to For Sale", onClick: () => moveToForSale(f.id), icon: Tag }, { label: "Delete", onClick: () => del(f.id), danger: true, icon: Trash2 }]} />
                 </div>
                 <div className="card-body">
                   <span><strong>{f.caliber}</strong> {f.type}</span>
                   <span className="dim">SN: {f.serial || "—"}</span>
-                  <span className="dim">Acquired: {f.acquired}</span>
+                  <span className="dim">Purchased: {f.date_purchased}</span>
                   <StatusPill status={status} />
                 </div>
-                <div className="card-foot"><span>{money(f.current_value || f.value)}</span></div>
+                <div className="card-foot"><span>{money(f.cost)}</span></div>
               </div>
             );
           })}
         </div>
       )}
-      {editId && <Modal title={editId === "new" ? "Add Firearm" : "Edit Firearm"} onClose={() => setEditId(null)}><Field label="Manufacturer"><select value={newFire.manufacturer} onChange={(e) => setNewFire({...newFire, manufacturer: e.target.value})}><option>Select...</option>{MANUFACTURERS.map(m => <option key={m} value={m}>{m}</option>)}</select></Field><Field label="Model"><input value={newFire.model} onChange={(e) => setNewFire({...newFire, model: e.target.value})} /></Field><Field label="Caliber"><select value={newFire.caliber} onChange={(e) => setNewFire({...newFire, caliber: e.target.value})}><option>Select...</option>{CALIBERS.map(c => <option key={c} value={c}>{c}</option>)}</select></Field><Field label="Type"><select value={newFire.type} onChange={(e) => setNewFire({...newFire, type: e.target.value})}><option>Select...</option>{FIREARM_TYPES.map(t => <option key={t} value={t}>{t}</option>)}</select></Field><Field label="Serial"><input value={newFire.serial} onChange={(e) => setNewFire({...newFire, serial: e.target.value})} /></Field><Field label="Nickname"><input value={newFire.nickname} onChange={(e) => setNewFire({...newFire, nickname: e.target.value})} /></Field><Field label="Acquired"><input type="date" value={newFire.acquired} onChange={(e) => setNewFire({...newFire, acquired: e.target.value})} /></Field><Field label="Original Value"><input type="number" value={newFire.value} onChange={(e) => setNewFire({...newFire, value: parseFloat(e.target.value)})} /></Field><Field label="Current Value"><input type="number" value={newFire.current_value} onChange={(e) => setNewFire({...newFire, current_value: parseFloat(e.target.value)})} /></Field><Field label="Notes"><textarea value={newFire.notes} onChange={(e) => setNewFire({...newFire, notes: e.target.value})} style={{minHeight: 80}} /></Field><button className="primary" onClick={save} style={{width: "100%"}}>Save</button></Modal>}
+
+      {editId && (
+        <Modal title={editId === "new" ? "Add Firearm" : "Edit Firearm"} onClose={() => setEditId(null)}>
+          <Field label="Manufacturer"><select value={newFire.manufacturer} onChange={(e) => setNewFire({...newFire, manufacturer: e.target.value})}><option>Select...</option>{MANUFACTURERS.map(m => <option key={m} value={m}>{m}</option>)}</select></Field>
+          <Field label="Model"><input value={newFire.model} onChange={(e) => setNewFire({...newFire, model: e.target.value})} /></Field>
+          <Field label="Caliber"><select value={newFire.caliber} onChange={(e) => setNewFire({...newFire, caliber: e.target.value})}><option>Select...</option>{CALIBERS.map(c => <option key={c} value={c}>{c}</option>)}</select></Field>
+          <Field label="Type"><select value={newFire.type} onChange={(e) => setNewFire({...newFire, type: e.target.value})}><option>Select...</option>{FIREARM_TYPES.map(t => <option key={t} value={t}>{t}</option>)}</select></Field>
+          <Field label="Serial"><input value={newFire.serial} onChange={(e) => setNewFire({...newFire, serial: e.target.value})} /></Field>
+          <Field label="Date Purchased"><input type="date" value={newFire.date_purchased} onChange={(e) => setNewFire({...newFire, date_purchased: e.target.value})} /></Field>
+          <Field label="Cost"><input type="number" value={newFire.cost} onChange={(e) => setNewFire({...newFire, cost: parseFloat(e.target.value)})} /></Field>
+          <Field label="Photo"><input type="file" accept="image/*" onChange={(e) => e.target.files?.[0] && uploadPhoto(e.target.files[0], editId === "new" ? "temp" : editId)} /></Field>
+          <Field label="Notes"><textarea value={newFire.notes} onChange={(e) => setNewFire({...newFire, notes: e.target.value})} style={{minHeight: 80}} /></Field>
+          <button className="primary" onClick={save} style={{width: "100%"}}>Save</button>
+        </Modal>
+      )}
     </div>
   );
 }
 
+// RANGE LOG (REDESIGNED)
 function RangeLog({ data, setData, userId }) {
-  const [editId, setEditId] = useState(null);
-  const [newLog, setNewLog] = useState({ firearm_id: "", visit_date: today(), location: "", rounds_fired: 0, target_photo_path: "", notes: "" });
+  const [activeVisit, setActiveVisit] = useState(null);
+  const [visitSetup, setVisitSetup] = useState(null);
+  const [visitRounds, setVisitRounds] = useState({});
+  const [savedRanges, setSavedRanges] = useState([]);
   const logs = data.rangelog || [];
-  const table = useTable(logs, ["location", "notes"], "visit_date");
+  const table = useTable(logs, ["location"], "visit_date");
 
-  const save = async () => {
-    const rec = { ...newLog, user_id: userId };
-    if (editId) {
-      await supabase.from("range_log").update(rec).eq("id", editId);
-    } else {
-      rec.id = uid(); await supabase.from("range_log").insert([rec]);
-    }
-    setNewLog({ firearm_id: "", visit_date: today(), location: "", rounds_fired: 0, target_photo_path: "", notes: "" });
-    setEditId(null);
-    const { data: d } = await supabase.from("range_log").select("*");
-    setData({ ...data, rangelog: d || [] });
+  useEffect(() => {
+    const ranges = [...new Set((logs || []).map(l => l.location))].slice(0, 3);
+    setSavedRanges(ranges);
+  }, [logs]);
+
+  const startRangeVisit = (loadoutId = null) => {
+    setVisitSetup({
+      location: "",
+      firearms: [],
+      loadoutId,
+      notes: ""
+    });
   };
 
-  const del = async (id) => {
-    if (!confirm("Delete this range log entry?")) return;
-    await supabase.from("range_log").delete().eq("id", id);
-    setData({ ...data, rangelog: logs.filter(l => l.id !== id) });
+  const endRangeVisit = async () => {
+    if (!activeVisit) return;
+    const firearms = Object.keys(visitRounds).filter(fid => visitRounds[fid] > 0);
+    if (firearms.length === 0) { alert("Enter rounds for at least one firearm."); return; }
+    
+    for (const fid of firearms) {
+      const rounds = visitRounds[fid];
+      await supabase.from("range_log").insert([{
+        id: uid(),
+        user_id: userId,
+        firearm_id: fid,
+        visit_date: today(),
+        location: activeVisit.location,
+        rounds_fired: rounds,
+        notes: activeVisit.notes
+      }]);
+      const ammoForGun = (data.ammo || []).find(a => a.firearm_id === fid);
+      if (ammoForGun) {
+        await supabase.from("ammo").update({ quantity: Math.max(0, ammoForGun.quantity - rounds) }).eq("id", ammoForGun.id);
+      }
+    }
+    const { data: d } = await supabase.from("range_log").select("*");
+    setData({ ...data, rangelog: d || [] });
+    setActiveVisit(null);
+    setVisitRounds({});
   };
 
   return (
     <div className="tab">
-      <Toolbar query={table.query} setQuery={table.setQuery} sortKey={table.sortKey} setSortKey={table.setSortKey} sortDir={table.sortDir} setSortDir={table.setSortDir} sortOptions={[{ key: "visit_date", label: "Date" }, { key: "location", label: "Location" }, { key: "rounds_fired", label: "Rounds" }]} placeholder="Search location..." addLabel="Add Log Entry" onAdd={() => setEditId("new")} />
-      {table.view.length === 0 ? <Empty icon={MapPin} label="No Range Visits" hint="Log your first range visit." /> : (
-        <div className="card-grid">
-          {table.view.map(l => {
-            const gun = (data.firearms || []).find(f => f.id === l.firearm_id);
-            return (
-              <div key={l.id} className="log-card">
-                <div className="card-head"><div><strong>{gun?.nickname || gun?.manufacturer || "Unknown"}</strong><span className="dim">{l.visit_date}</span></div><ThreeDotMenu items={[{ label: "Edit", onClick: () => { setNewLog(l); setEditId(l.id); } }, { label: "Delete", onClick: () => del(l.id), danger: true, icon: Trash2 }]} /></div>
-                <div className="card-body"><span><strong>{l.rounds_fired}</strong> rounds</span><span className="dim">{l.location || "Home range"}</span><span className="dim">{l.notes}</span></div>
-              </div>
-            );
-          })}
-        </div>
+      {!activeVisit && !visitSetup ? (
+        <>
+          <button className="primary" onClick={() => startRangeVisit()} style={{marginBottom: 16}}><Plus size={16} /> Go to Range</button>
+          {table.view.length === 0 ? (
+            <Empty icon={MapPin} label="No Range Visits" hint="Log your first range visit." />
+          ) : (
+            <div className="card-grid">
+              {table.view.map(l => {
+                const gun = (data.firearms || []).find(f => f.id === l.firearm_id);
+                return (
+                  <div key={l.id} className="log-card">
+                    <div className="card-head"><div><strong>{gun?.manufacturer || "Unknown"}</strong><span className="dim">{l.visit_date}</span></div></div>
+                    <div className="card-body"><span><strong>{l.rounds_fired}</strong> rounds</span><span className="dim">{l.location || "Home range"}</span></div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </>
+      ) : visitSetup ? (
+        <Modal title="Start Range Visit" onClose={() => setVisitSetup(null)}>
+          <Field label="Range Name">
+            <input list="ranges" value={visitSetup.location} onChange={(e) => setVisitSetup({...visitSetup, location: e.target.value})} placeholder="Enter or select from recent" />
+            <datalist id="ranges">
+              {savedRanges.map(r => <option key={r} value={r} />)}
+            </datalist>
+          </Field>
+          <Field label="Select Firearms">
+            <div style={{display: "grid", gap: 8}}>
+              {(data.firearms || []).filter(f => !f.sold).map(f => (
+                <label key={f.id} style={{display: "flex", alignItems: "center", gap: 8}}>
+                  <input type="checkbox" onChange={(e) => setVisitSetup({...visitSetup, firearms: e.target.checked ? [...visitSetup.firearms, f.id] : visitSetup.firearms.filter(fid => fid !== f.id)})} />
+                  <span>{f.manufacturer} {f.model}</span>
+                </label>
+              ))}
+            </div>
+          </Field>
+          <Field label="Notes"><textarea value={visitSetup.notes} onChange={(e) => setVisitSetup({...visitSetup, notes: e.target.value})} style={{minHeight: 60}} /></Field>
+          <button className="primary" onClick={() => { setActiveVisit(visitSetup); setVisitSetup(null); }} style={{width: "100%"}}>Start Visit</button>
+        </Modal>
+      ) : (
+        <Modal title="Active Range Visit" onClose={() => setActiveVisit(null)} wide>
+          <div style={{marginBottom: 20}}>
+            <strong style={{display: "block", marginBottom: 8}}>Location: {activeVisit.location}</strong>
+            <div style={{display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 12, marginBottom: 20}}>
+              {activeVisit.firearms.map(fid => {
+                const gun = (data.firearms || []).find(f => f.id === fid);
+                return (
+                  <div key={fid} style={{background: "var(--panel)", border: "1px solid var(--line)", borderRadius: "var(--radius)", padding: 12}}>
+                    <strong>{gun?.manufacturer} {gun?.model}</strong>
+                    <label style={{display: "block", marginTop: 8}}><span style={{fontSize: 12, color: "var(--dim)"}}>Rounds Fired</span><input type="number" value={visitRounds[fid] || 0} onChange={(e) => setVisitRounds({...visitRounds, [fid]: parseInt(e.target.value) || 0})} style={{width: "100%", marginTop: 4}} /></label>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          <div style={{display: "flex", gap: 8}}>
+            <button className="primary" onClick={endRangeVisit} style={{flex: 1}}><Check size={14} /> End Visit & Save</button>
+            <button className="ghost" onClick={() => setActiveVisit(null)}>Cancel</button>
+          </div>
+        </Modal>
       )}
-      {editId && <Modal title={editId === "new" ? "Add Range Log" : "Edit Range Log"} onClose={() => setEditId(null)}><Field label="Firearm"><select value={newLog.firearm_id} onChange={(e) => setNewLog({...newLog, firearm_id: e.target.value})}><option>Select...</option>{(data.firearms || []).map(f => <option key={f.id} value={f.id}>{f.nickname || f.manufacturer} {f.model}</option>)}</select></Field><Field label="Date"><input type="date" value={newLog.visit_date} onChange={(e) => setNewLog({...newLog, visit_date: e.target.value})} /></Field><Field label="Location"><input value={newLog.location} onChange={(e) => setNewLog({...newLog, location: e.target.value})} placeholder="Range name or home" /></Field><Field label="Rounds Fired"><input type="number" value={newLog.rounds_fired} onChange={(e) => setNewLog({...newLog, rounds_fired: parseInt(e.target.value) || 0})} /></Field><Field label="Notes"><textarea value={newLog.notes} onChange={(e) => setNewLog({...newLog, notes: e.target.value})} style={{minHeight: 80}} /></Field><button className="primary" onClick={save} style={{width: "100%"}}>Save</button></Modal>}
     </div>
   );
 }
 
+// LOAD OUT
 function RangeLoadOut({ data, setData, userId }) {
   const [editId, setEditId] = useState(null);
-  const [newLoad, setNewLoad] = useState({ name: "", favorite: false, notes: "", items: [] });
+  const [newLoad, setNewLoad] = useState({ name: "", favorite: false, notes: "", selected_firearms: [] });
   const loadouts = data.loadouts || [];
 
   const save = async () => {
@@ -394,9 +503,10 @@ function RangeLoadOut({ data, setData, userId }) {
     if (editId) {
       await supabase.from("loadouts").update(rec).eq("id", editId);
     } else {
-      rec.id = uid(); await supabase.from("loadouts").insert([rec]);
+      rec.id = uid();
+      await supabase.from("loadouts").insert([rec]);
     }
-    setNewLoad({ name: "", favorite: false, notes: "", items: [] });
+    setNewLoad({ name: "", favorite: false, notes: "", selected_firearms: [] });
     setEditId(null);
     const { data: d } = await supabase.from("loadouts").select("*");
     setData({ ...data, loadouts: d || [] });
@@ -411,24 +521,56 @@ function RangeLoadOut({ data, setData, userId }) {
   return (
     <div className="tab">
       <button className="primary" onClick={() => setEditId("new")} style={{marginBottom: 16}}><Plus size={16} /> New Loadout</button>
-      {loadouts.length === 0 ? <Empty icon={Backpack} label="No Loadouts" hint="Create your first range loadout." /> : (
+      {loadouts.length === 0 ? (
+        <Empty icon={Backpack} label="No Loadouts" hint="Create your first range loadout." />
+      ) : (
         <div className="card-grid">
-          {loadouts.map(l => (
-            <div key={l.id} className="loadout-card">
-              <div className="card-head"><div><strong>{l.name}</strong>{l.favorite && <Star size={14} style={{fill: "var(--gold)", color: "var(--gold)"}} />}</div><ThreeDotMenu items={[{ label: "Edit", onClick: () => { setNewLoad(l); setEditId(l.id); } }, { label: "Delete", onClick: () => del(l.id), danger: true, icon: Trash2 }]} /></div>
-              <div className="card-body"><span className="dim">{l.items?.length || 0} items</span><span className="dim">{l.notes}</span></div>
-            </div>
-          ))}
+          {loadouts.map(l => {
+            const selectedGuns = (data.firearms || []).filter(f => (l.selected_firearms || []).includes(f.id));
+            const totalRounds = selectedGuns.reduce((sum, g) => sum + (DEFAULT_RANGE_ROUNDS[g.type] || 50), 0);
+            return (
+              <div key={l.id} className="loadout-card">
+                <div className="card-head">
+                  <div><strong>{l.name}</strong>{l.favorite && <Star size={14} style={{fill: "var(--gold)", color: "var(--gold)"}} />}</div>
+                  <PersistentMenu items={[{ label: "Initiate Range Visit", onClick: () => {}, icon: MapPin }, { label: "Edit", onClick: () => { setNewLoad(l); setEditId(l.id); } }, { label: "Delete", onClick: () => del(l.id), danger: true, icon: Trash2 }]} />
+                </div>
+                <div className="card-body">
+                  <span className="dim">{selectedGuns.length} firearms</span>
+                  <span className="dim">~{totalRounds} total rounds</span>
+                  <span className="dim">{l.notes}</span>
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
-      {editId && <Modal title={editId === "new" ? "New Loadout" : "Edit Loadout"} onClose={() => setEditId(null)}><Field label="Name"><input value={newLoad.name} onChange={(e) => setNewLoad({...newLoad, name: e.target.value})} /></Field><Field label="Notes"><textarea value={newLoad.notes} onChange={(e) => setNewLoad({...newLoad, notes: e.target.value})} style={{minHeight: 60}} /></Field><label style={{display: "flex", alignItems: "center", gap: 8, marginBottom: 16}}><input type="checkbox" checked={newLoad.favorite} onChange={(e) => setNewLoad({...newLoad, favorite: e.target.checked})} /> Make this my favorite</label><button className="primary" onClick={save} style={{width: "100%"}}>Save</button></Modal>}
+
+      {editId && (
+        <Modal title={editId === "new" ? "New Loadout" : "Edit Loadout"} onClose={() => setEditId(null)}>
+          <Field label="Name"><input value={newLoad.name} onChange={(e) => setNewLoad({...newLoad, name: e.target.value})} /></Field>
+          <Field label="Select Firearms">
+            <div style={{display: "grid", gap: 8, maxHeight: 200, overflowY: "auto"}}>
+              {(data.firearms || []).filter(f => !f.sold).map(f => (
+                <label key={f.id} style={{display: "flex", alignItems: "center", gap: 8}}>
+                  <input type="checkbox" checked={(newLoad.selected_firearms || []).includes(f.id)} onChange={(e) => setNewLoad({...newLoad, selected_firearms: e.target.checked ? [...(newLoad.selected_firearms || []), f.id] : (newLoad.selected_firearms || []).filter(fid => fid !== f.id)})} />
+                  <span>{f.manufacturer} {f.model}</span>
+                </label>
+              ))}
+            </div>
+          </Field>
+          <Field label="Notes"><textarea value={newLoad.notes} onChange={(e) => setNewLoad({...newLoad, notes: e.target.value})} style={{minHeight: 60}} /></Field>
+          <label style={{display: "flex", alignItems: "center", gap: 8, marginBottom: 16}}><input type="checkbox" checked={newLoad.favorite} onChange={(e) => setNewLoad({...newLoad, favorite: e.target.checked})} /> Make this my favorite</label>
+          <button className="primary" onClick={save} style={{width: "100%"}}>Save</button>
+        </Modal>
+      )}
     </div>
   );
 }
 
+// GUN PARTS
 function GunParts({ data, setData, userId }) {
   const [editId, setEditId] = useState(null);
-  const [newPart, setNewPart] = useState({ category: "", description: "", manufacturer: "", model: "", cost: 0, acquired: today(), condition: "excellent", notes: "" });
+  const [newPart, setNewPart] = useState({ category: "", description: "", manufacturer: "", model: "", cost: 0, condition: "excellent", notes: "" });
   const parts = data.gunparts || [];
   const table = useTable(parts, ["description", "manufacturer", "category"], "category");
 
@@ -437,9 +579,10 @@ function GunParts({ data, setData, userId }) {
     if (editId) {
       await supabase.from("gun_parts").update(rec).eq("id", editId);
     } else {
-      rec.id = uid(); await supabase.from("gun_parts").insert([rec]);
+      rec.id = uid();
+      await supabase.from("gun_parts").insert([rec]);
     }
-    setNewPart({ category: "", description: "", manufacturer: "", model: "", cost: 0, acquired: today(), condition: "excellent", notes: "" });
+    setNewPart({ category: "", description: "", manufacturer: "", model: "", cost: 0, condition: "excellent", notes: "" });
     setEditId(null);
     const { data: d } = await supabase.from("gun_parts").select("*");
     setData({ ...data, gunparts: d || [] });
@@ -453,31 +596,49 @@ function GunParts({ data, setData, userId }) {
 
   return (
     <div className="tab">
-      <Toolbar query={table.query} setQuery={table.setQuery} sortKey={table.sortKey} setSortKey={table.setSortKey} sortDir={table.sortDir} setSortDir={table.setSortDir} sortOptions={[{ key: "category", label: "Category" }, { key: "manufacturer", label: "Manufacturer" }, { key: "acquired", label: "Acquired" }, { key: "cost", label: "Cost" }]} placeholder="Search parts..." addLabel="Add Part" onAdd={() => setEditId("new")} />
-      {table.view.length === 0 ? <Empty icon={Hammer} label="No Gun Parts" hint="Start adding your spare parts and components." /> : (
+      <Toolbar query={table.query} setQuery={table.setQuery} sortKey={table.sortKey} setSortKey={table.setSortKey} sortDir={table.sortDir} setSortDir={table.setSortDir} sortOptions={[{ key: "category", label: "Category" }, { key: "manufacturer", label: "Manufacturer" }, { key: "cost", label: "Cost" }]} placeholder="Search parts..." addLabel="Add Part" onAdd={() => setEditId("new")} />
+      {table.view.length === 0 ? (
+        <Empty icon={Hammer} label="No Gun Parts" hint="Start adding your spare parts and components." />
+      ) : (
         <div className="card-grid">
           {table.view.map(p => (
             <div key={p.id} className="part-card">
-              <div className="card-head"><div><strong>{p.description}</strong><span className="dim">{p.category}</span></div><ThreeDotMenu items={[{ label: "Edit", onClick: () => { setNewPart(p); setEditId(p.id); } }, { label: "Delete", onClick: () => del(p.id), danger: true, icon: Trash2 }]} /></div>
-              <div className="card-body"><span>{p.manufacturer || "—"} {p.model || ""}</span><span className="dim">Condition: {p.condition}</span><span className="dim">Acquired: {p.acquired}</span></div>
+              <div className="card-head">
+                <div><strong>{p.description}</strong><span className="dim">{p.category}</span></div>
+                <PersistentMenu items={[{ label: "Edit", onClick: () => { setNewPart(p); setEditId(p.id); } }, { label: "Delete", onClick: () => del(p.id), danger: true, icon: Trash2 }]} />
+              </div>
+              <div className="card-body">
+                <span>{p.manufacturer || "—"} {p.model || ""}</span>
+                <span className="dim">Condition: {p.condition}</span>
+              </div>
               <div className="card-foot"><span>{money(p.cost)}</span></div>
             </div>
           ))}
         </div>
       )}
-      {editId && <Modal title={editId === "new" ? "Add Gun Part" : "Edit Gun Part"} onClose={() => setEditId(null)}><Field label="Category"><select value={newPart.category} onChange={(e) => setNewPart({...newPart, category: e.target.value})}><option>Select...</option>{GUN_PARTS_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}</select></Field><Field label="Description"><input value={newPart.description} onChange={(e) => setNewPart({...newPart, description: e.target.value})} /></Field><Field label="Manufacturer"><input value={newPart.manufacturer} onChange={(e) => setNewPart({...newPart, manufacturer: e.target.value})} /></Field><Field label="Model"><input value={newPart.model} onChange={(e) => setNewPart({...newPart, model: e.target.value})} /></Field><Field label="Cost"><input type="number" value={newPart.cost} onChange={(e) => setNewPart({...newPart, cost: parseFloat(e.target.value)})} /></Field><Field label="Condition"><select value={newPart.condition} onChange={(e) => setNewPart({...newPart, condition: e.target.value})}><option value="excellent">Excellent</option><option value="good">Good</option><option value="fair">Fair</option><option value="poor">Poor</option></select></Field><Field label="Acquired"><input type="date" value={newPart.acquired} onChange={(e) => setNewPart({...newPart, acquired: e.target.value})} /></Field><Field label="Notes"><textarea value={newPart.notes} onChange={(e) => setNewPart({...newPart, notes: e.target.value})} style={{minHeight: 80}} /></Field><button className="primary" onClick={save} style={{width: "100%"}}>Save</button></Modal>}
+      {editId && (
+        <Modal title={editId === "new" ? "Add Gun Part" : "Edit Gun Part"} onClose={() => setEditId(null)}>
+          <Field label="Category"><select value={newPart.category} onChange={(e) => setNewPart({...newPart, category: e.target.value})}><option>Select...</option>{GUN_PARTS_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}</select></Field>
+          <Field label="Description"><input value={newPart.description} onChange={(e) => setNewPart({...newPart, description: e.target.value})} /></Field>
+          <Field label="Manufacturer"><input value={newPart.manufacturer} onChange={(e) => setNewPart({...newPart, manufacturer: e.target.value})} /></Field>
+          <Field label="Model"><input value={newPart.model} onChange={(e) => setNewPart({...newPart, model: e.target.value})} /></Field>
+          <Field label="Cost"><input type="number" value={newPart.cost} onChange={(e) => setNewPart({...newPart, cost: parseFloat(e.target.value)})} /></Field>
+          <Field label="Condition"><select value={newPart.condition} onChange={(e) => setNewPart({...newPart, condition: e.target.value})}><option value="excellent">Excellent</option><option value="good">Good</option><option value="fair">Fair</option><option value="poor">Poor</option></select></Field>
+          <Field label="Notes"><textarea value={newPart.notes} onChange={(e) => setNewPart({...newPart, notes: e.target.value})} style={{minHeight: 80}} /></Field>
+          <button className="primary" onClick={save} style={{width: "100%"}}>Save</button>
+        </Modal>
+      )}
     </div>
   );
 }
 
-function UpKeep({ data, setData }) {
+// UP-KEEP (Updated - no Safe Audit here, no Chamber Wipe)
+function UpKeep({ data, setData, safeAuditReset }) {
   const firearms = data.firearms || [];
   const upkeepItems = [
     { key: "last_cleaned", label: "Last Cleaned", frequency: 30, icon: Wrench, firearms: firearms.filter(f => !f.last_cleaned || daysBetween(f.last_cleaned, today()) > 30) },
     { key: "last_oiled", label: "Last Oiled", frequency: 180, icon: Droplet, firearms: firearms.filter(f => !f.last_oiled || daysBetween(f.last_oiled, today()) > 180) },
-    { key: "last_cleaned", label: "Chamber Wipe", frequency: 180, icon: Sparkles, firearms: firearms.filter(f => !f.last_cleaned || daysBetween(f.last_cleaned, today()) > 180) },
     { key: "last_torn_down", label: "Tear Down", frequency: 365, icon: Hammer, firearms: firearms.filter(f => !f.last_torn_down || daysBetween(f.last_torn_down, today()) > 365) },
-    { key: "last_safe_audit", label: "Safe Audit", frequency: 90, icon: ShieldCheck, firearms: firearms.filter(f => !f.last_safe_audit || daysBetween(f.last_safe_audit, today()) > 90) },
     { key: "last_optic_check", label: "Optic Check", frequency: 180, icon: Eye, firearms: firearms.filter(f => !f.last_optic_check || daysBetween(f.last_optic_check, today()) > 180) },
     { key: "last_holster_check", label: "Holster Check", frequency: 30, icon: Hand, firearms: firearms.filter(f => f.has_carry_holster && (!f.last_holster_check || daysBetween(f.last_holster_check, today()) > 30)) },
   ].sort((a, b) => b.firearms.length - a.firearms.length);
@@ -496,12 +657,19 @@ function UpKeep({ data, setData }) {
     <div className="tab">
       {upkeepItems.map(item => (
         <div key={item.key} style={{marginBottom: 24}}>
-          <h3 style={{fontFamily: "'Oswald',sans-serif", fontSize: 16, marginBottom: 12, display: "flex", alignItems: "center", gap: 8}}><item.icon size={18} style={{color: "var(--accent)"}} /> {item.label} <span style={{color: "var(--faint)", fontSize: 12, marginLeft: "auto"}}>({item.firearms.length} due)</span></h3>
-          {item.firearms.length === 0 ? <div style={{padding: 20, color: "var(--dim)", textAlign: "center", background: "var(--panel)", borderRadius: "var(--radius)", border: "1px dashed var(--line)"}}>✓ All firearms up to date</div> : (
+          <h3 style={{fontFamily: "'Oswald',sans-serif", fontSize: 16, marginBottom: 12, display: "flex", alignItems: "center", gap: 8}}>
+            <item.icon size={18} style={{color: "var(--accent)"}} /> {item.label} <span style={{color: "var(--faint)", fontSize: 12, marginLeft: "auto"}}>({item.firearms.length} due)</span>
+          </h3>
+          {item.firearms.length === 0 ? (
+            <div style={{padding: 20, color: "var(--dim)", textAlign: "center", background: "var(--panel)", borderRadius: "var(--radius)", border: "1px dashed var(--line)"}}>✓ All firearms up to date</div>
+          ) : (
             <div style={{display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12}}>
               {item.firearms.map(f => (
                 <div key={f.id} style={{background: "var(--panel)", border: "1px solid var(--line)", borderRadius: "var(--radius)", padding: 14}}>
-                  <div style={{display: "flex", justifyContent: "space-between", alignItems: "start", marginBottom: 10}}><strong style={{fontSize: 14}}>{f.nickname || f.manufacturer} {f.model}</strong><button className="primary small" onClick={() => resetUpkeep(f.id, item.key)}><Check size={12} /> Clear</button></div>
+                  <div style={{display: "flex", justifyContent: "space-between", alignItems: "start", marginBottom: 10}}>
+                    <strong style={{fontSize: 14}}>{f.manufacturer} {f.model}</strong>
+                    <button className="primary small" onClick={() => resetUpkeep(f.id, item.key)}><Check size={12} /> Clear</button>
+                  </div>
                   <span style={{display: "block", fontSize: 12, color: "var(--dim)", marginBottom: 4}}>Last: {f[item.key] ? daysBetween(f[item.key], today()) + " days ago" : "Never"}</span>
                 </div>
               ))}
@@ -513,53 +681,75 @@ function UpKeep({ data, setData }) {
   );
 }
 
-function AddOns({ data, setData, userId }) {
+// ATTACHMENTS (renamed from Add-Ons)
+function Attachments({ data, setData, userId }) {
   const [editId, setEditId] = useState(null);
-  const [newAddon, setNewAddon] = useState({ type: "", description: "", manufacturer: "", model: "", cost: 0, acquired: today(), assigned_to: "", notes: "" });
-  const addons = data.accessories || [];
-  const table = useTable(addons, ["description", "manufacturer", "assigned_to"], "type");
+  const [newAddon, setNewAddon] = useState({ type: "", description: "", manufacturer: "", model: "", cost: 0, assigned_to: "", notes: "" });
+  const attachments = data.accessories || [];
+  const table = useTable(attachments, ["description", "manufacturer", "assigned_to"], "type");
 
   const save = async () => {
     const rec = { ...newAddon, user_id: userId };
     if (editId) {
       await supabase.from("accessories").update(rec).eq("id", editId);
     } else {
-      rec.id = uid(); await supabase.from("accessories").insert([rec]);
+      rec.id = uid();
+      await supabase.from("accessories").insert([rec]);
     }
-    setNewAddon({ type: "", description: "", manufacturer: "", model: "", cost: 0, acquired: today(), assigned_to: "", notes: "" });
+    setNewAddon({ type: "", description: "", manufacturer: "", model: "", cost: 0, assigned_to: "", notes: "" });
     setEditId(null);
     const { data: d } = await supabase.from("accessories").select("*");
     setData({ ...data, accessories: d || [] });
   };
 
   const del = async (id) => {
-    if (!confirm("Delete this add-on?")) return;
+    if (!confirm("Delete this attachment?")) return;
     await supabase.from("accessories").delete().eq("id", id);
-    setData({ ...data, accessories: addons.filter(a => a.id !== id) });
+    setData({ ...data, accessories: attachments.filter(a => a.id !== id) });
   };
 
   return (
     <div className="tab">
-      <Toolbar query={table.query} setQuery={table.setQuery} sortKey={table.sortKey} setSortKey={table.setSortKey} sortDir={table.sortDir} setSortDir={table.setSortDir} sortOptions={[{ key: "type", label: "Type" }, { key: "manufacturer", label: "Manufacturer" }, { key: "cost", label: "Cost" }]} placeholder="Search add-ons..." addLabel="Add Add-On" onAdd={() => setEditId("new")} />
-      {table.view.length === 0 ? <Empty icon={Package} label="No Add-Ons" hint="Add your first scope, holster, or accessory." /> : (
+      <Toolbar query={table.query} setQuery={table.setQuery} sortKey={table.sortKey} setSortKey={table.setSortKey} sortDir={table.sortDir} setSortDir={table.setSortDir} sortOptions={[{ key: "type", label: "Type" }, { key: "manufacturer", label: "Manufacturer" }, { key: "cost", label: "Cost" }]} placeholder="Search attachments..." addLabel="Add Attachment" onAdd={() => setEditId("new")} />
+      {table.view.length === 0 ? (
+        <Empty icon={Package} label="No Attachments" hint="Add your first scope, holster, or attachment." />
+      ) : (
         <div className="card-grid">
           {table.view.map(a => (
             <div key={a.id} className="addon-card">
-              <div className="card-head"><div><strong>{a.description}</strong><span className="dim">{a.type}</span></div><ThreeDotMenu items={[{ label: "Edit", onClick: () => { setNewAddon(a); setEditId(a.id); } }, { label: "Delete", onClick: () => del(a.id), danger: true, icon: Trash2 }]} /></div>
-              <div className="card-body"><span>{a.manufacturer || "—"} {a.model || ""}</span><span className="dim">Assigned to: {a.assigned_to || "Unassigned"}</span><span className="dim">Acquired: {a.acquired}</span></div>
+              <div className="card-head">
+                <div><strong>{a.description}</strong><span className="dim">{a.type}</span></div>
+                <PersistentMenu items={[{ label: "Edit", onClick: () => { setNewAddon(a); setEditId(a.id); } }, { label: "Delete", onClick: () => del(a.id), danger: true, icon: Trash2 }]} />
+              </div>
+              <div className="card-body">
+                <span>{a.manufacturer || "—"} {a.model || ""}</span>
+                <span className="dim">Assigned to: {a.assigned_to || "Unassigned"}</span>
+              </div>
               <div className="card-foot"><span>{money(a.cost)}</span></div>
             </div>
           ))}
         </div>
       )}
-      {editId && <Modal title={editId === "new" ? "Add Add-On" : "Edit Add-On"} onClose={() => setEditId(null)}><Field label="Type"><select value={newAddon.type} onChange={(e) => setNewAddon({...newAddon, type: e.target.value})}><option>Select...</option>{ACCESSORY_TYPES.map(t => <option key={t} value={t}>{t}</option>)}</select></Field><Field label="Description"><input value={newAddon.description} onChange={(e) => setNewAddon({...newAddon, description: e.target.value})} /></Field><Field label="Manufacturer"><input value={newAddon.manufacturer} onChange={(e) => setNewAddon({...newAddon, manufacturer: e.target.value})} /></Field><Field label="Model"><input value={newAddon.model} onChange={(e) => setNewAddon({...newAddon, model: e.target.value})} /></Field><Field label="Cost"><input type="number" value={newAddon.cost} onChange={(e) => setNewAddon({...newAddon, cost: parseFloat(e.target.value)})} /></Field><Field label="Assigned To"><input value={newAddon.assigned_to} onChange={(e) => setNewAddon({...newAddon, assigned_to: e.target.value})} placeholder="Firearm nickname" /></Field><Field label="Acquired"><input type="date" value={newAddon.acquired} onChange={(e) => setNewAddon({...newAddon, acquired: e.target.value})} /></Field><Field label="Notes"><textarea value={newAddon.notes} onChange={(e) => setNewAddon({...newAddon, notes: e.target.value})} style={{minHeight: 80}} /></Field><button className="primary" onClick={save} style={{width: "100%"}}>Save</button></Modal>}
+      {editId && (
+        <Modal title={editId === "new" ? "Add Attachment" : "Edit Attachment"} onClose={() => setEditId(null)}>
+          <Field label="Type"><select value={newAddon.type} onChange={(e) => setNewAddon({...newAddon, type: e.target.value})}><option>Select...</option>{ATTACHMENT_TYPES.map(t => <option key={t} value={t}>{t}</option>)}</select></Field>
+          <Field label="Description"><input value={newAddon.description} onChange={(e) => setNewAddon({...newAddon, description: e.target.value})} /></Field>
+          <Field label="Manufacturer"><input value={newAddon.manufacturer} onChange={(e) => setNewAddon({...newAddon, manufacturer: e.target.value})} /></Field>
+          <Field label="Model"><input value={newAddon.model} onChange={(e) => setNewAddon({...newAddon, model: e.target.value})} /></Field>
+          <Field label="Cost"><input type="number" value={newAddon.cost} onChange={(e) => setNewAddon({...newAddon, cost: parseFloat(e.target.value)})} /></Field>
+          <Field label="Assigned To"><input value={newAddon.assigned_to} onChange={(e) => setNewAddon({...newAddon, assigned_to: e.target.value})} placeholder="Firearm manufacturer/model" /></Field>
+          <Field label="Notes"><textarea value={newAddon.notes} onChange={(e) => setNewAddon({...newAddon, notes: e.target.value})} style={{minHeight: 80}} /></Field>
+          <button className="primary" onClick={save} style={{width: "100%"}}>Save</button>
+        </Modal>
+      )}
     </div>
   );
 }
 
+// AMMUNITION
 function Ammunition({ data, setData, userId }) {
   const [editId, setEditId] = useState(null);
-  const [newAmmo, setNewAmmo] = useState({ caliber: "", type: "", quantity: 0, storage_location: "", cost_per_round: 0, acquired: today(), notes: "" });
+  const [newAmmo, setNewAmmo] = useState({ caliber: "", type: "", quantity: 0, storage_location: "", cost_per_round: 0, notes: "" });
   const ammo = data.ammo || [];
   const table = useTable(ammo, ["caliber", "storage_location"], "caliber");
 
@@ -568,9 +758,10 @@ function Ammunition({ data, setData, userId }) {
     if (editId) {
       await supabase.from("ammo").update(rec).eq("id", editId);
     } else {
-      rec.id = uid(); await supabase.from("ammo").insert([rec]);
+      rec.id = uid();
+      await supabase.from("ammo").insert([rec]);
     }
-    setNewAmmo({ caliber: "", type: "", quantity: 0, storage_location: "", cost_per_round: 0, acquired: today(), notes: "" });
+    setNewAmmo({ caliber: "", type: "", quantity: 0, storage_location: "", cost_per_round: 0, notes: "" });
     setEditId(null);
     const { data: d } = await supabase.from("ammo").select("*");
     setData({ ...data, ammo: d || [] });
@@ -584,26 +775,46 @@ function Ammunition({ data, setData, userId }) {
 
   return (
     <div className="tab">
-      <Toolbar query={table.query} setQuery={table.setQuery} sortKey={table.sortKey} setSortKey={table.setSortKey} sortDir={table.sortDir} setSortDir={table.setSortDir} sortOptions={[{ key: "caliber", label: "Caliber" }, { key: "quantity", label: "Quantity" }, { key: "acquired", label: "Acquired" }]} placeholder="Search ammo..." addLabel="Add Ammo" onAdd={() => setEditId("new")} />
-      {table.view.length === 0 ? <Empty icon={Boxes} label="No Ammunition" hint="Log your ammunition inventory." /> : (
+      <Toolbar query={table.query} setQuery={table.setQuery} sortKey={table.sortKey} setSortKey={table.setSortKey} sortDir={table.sortDir} setSortDir={table.setSortDir} sortOptions={[{ key: "caliber", label: "Caliber" }, { key: "quantity", label: "Quantity" }]} placeholder="Search ammunition..." addLabel="Add Ammunition" onAdd={() => setEditId("new")} />
+      {table.view.length === 0 ? (
+        <Empty icon={Boxes} label="No Ammunition" hint="Log your ammunition inventory." />
+      ) : (
         <div className="card-grid">
           {table.view.map(a => (
             <div key={a.id} className="ammo-card">
-              <div className="card-head"><div><strong>{a.caliber}</strong><span className="dim">{a.type}</span></div><ThreeDotMenu items={[{ label: "Edit", onClick: () => { setNewAmmo(a); setEditId(a.id); } }, { label: "Delete", onClick: () => del(a.id), danger: true, icon: Trash2 }]} /></div>
-              <div className="card-body"><span className="dim">{a.quantity} rounds</span><span className="dim">Storage: {a.storage_location || "—"}</span><span className="dim">Cost: {money(a.cost_per_round)}/round</span></div>
+              <div className="card-head">
+                <div><strong>{a.caliber}</strong><span className="dim">{a.type}</span></div>
+                <PersistentMenu items={[{ label: "Edit", onClick: () => { setNewAmmo(a); setEditId(a.id); } }, { label: "Delete", onClick: () => del(a.id), danger: true, icon: Trash2 }]} />
+              </div>
+              <div className="card-body">
+                <span className="dim">{a.quantity} rounds</span>
+                <span className="dim">Storage: {a.storage_location || "—"}</span>
+                <span className="dim">Cost: {money(a.cost_per_round)}/round</span>
+              </div>
               <div className="card-foot"><span>{money(a.quantity * (a.cost_per_round || 0))}</span></div>
             </div>
           ))}
         </div>
       )}
-      {editId && <Modal title={editId === "new" ? "Add Ammunition" : "Edit Ammunition"} onClose={() => setEditId(null)}><Field label="Caliber"><select value={newAmmo.caliber} onChange={(e) => setNewAmmo({...newAmmo, caliber: e.target.value})}><option>Select...</option>{CALIBERS.map(c => <option key={c} value={c}>{c}</option>)}</select></Field><Field label="Type"><select value={newAmmo.type} onChange={(e) => setNewAmmo({...newAmmo, type: e.target.value})}><option>Select...</option>{AMMO_TYPES.map(t => <option key={t} value={t}>{t}</option>)}</select></Field><Field label="Quantity"><input type="number" value={newAmmo.quantity} onChange={(e) => setNewAmmo({...newAmmo, quantity: parseInt(e.target.value) || 0})} /></Field><Field label="Cost Per Round"><input type="number" step="0.01" value={newAmmo.cost_per_round} onChange={(e) => setNewAmmo({...newAmmo, cost_per_round: parseFloat(e.target.value)})} /></Field><Field label="Storage Location"><input value={newAmmo.storage_location} onChange={(e) => setNewAmmo({...newAmmo, storage_location: e.target.value})} placeholder="Safe, cabinet, etc" /></Field><Field label="Acquired"><input type="date" value={newAmmo.acquired} onChange={(e) => setNewAmmo({...newAmmo, acquired: e.target.value})} /></Field><Field label="Notes"><textarea value={newAmmo.notes} onChange={(e) => setNewAmmo({...newAmmo, notes: e.target.value})} style={{minHeight: 80}} /></Field><button className="primary" onClick={save} style={{width: "100%"}}>Save</button></Modal>}
+      {editId && (
+        <Modal title={editId === "new" ? "Add Ammunition" : "Edit Ammunition"} onClose={() => setEditId(null)}>
+          <Field label="Caliber"><select value={newAmmo.caliber} onChange={(e) => setNewAmmo({...newAmmo, caliber: e.target.value})}><option>Select...</option>{CALIBERS.map(c => <option key={c} value={c}>{c}</option>)}</select></Field>
+          <Field label="Type"><select value={newAmmo.type} onChange={(e) => setNewAmmo({...newAmmo, type: e.target.value})}><option>Select...</option>{AMMO_TYPES.map(t => <option key={t} value={t}>{t}</option>)}</select></Field>
+          <Field label="Quantity"><input type="number" value={newAmmo.quantity} onChange={(e) => setNewAmmo({...newAmmo, quantity: parseInt(e.target.value) || 0})} /></Field>
+          <Field label="Cost Per Round"><input type="number" step="0.01" value={newAmmo.cost_per_round} onChange={(e) => setNewAmmo({...newAmmo, cost_per_round: parseFloat(e.target.value)})} /></Field>
+          <Field label="Storage Location"><input value={newAmmo.storage_location} onChange={(e) => setNewAmmo({...newAmmo, storage_location: e.target.value})} /></Field>
+          <Field label="Notes"><textarea value={newAmmo.notes} onChange={(e) => setNewAmmo({...newAmmo, notes: e.target.value})} style={{minHeight: 80}} /></Field>
+          <button className="primary" onClick={save} style={{width: "100%"}}>Save</button>
+        </Modal>
+      )}
     </div>
   );
 }
 
+// SUPPLIES
 function SuppliesNeeded({ data, setData, userId }) {
   const [editId, setEditId] = useState(null);
-  const [newSupply, setNewSupply] = useState({ category: "", name: "", purchased: false, est_cost: 0, linked_type: "", linked_item: "", notes: "" });
+  const [newSupply, setNewSupply] = useState({ category: "", name: "", purchased: false, est_cost: 0, notes: "" });
   const supplies = data.supplies || [];
   const table = useTable(supplies, ["category", "name"], "category");
 
@@ -612,9 +823,10 @@ function SuppliesNeeded({ data, setData, userId }) {
     if (editId) {
       await supabase.from("supplies").update(rec).eq("id", editId);
     } else {
-      rec.id = uid(); await supabase.from("supplies").insert([rec]);
+      rec.id = uid();
+      await supabase.from("supplies").insert([rec]);
     }
-    setNewSupply({ category: "", name: "", purchased: false, est_cost: 0, linked_type: "", linked_item: "", notes: "" });
+    setNewSupply({ category: "", name: "", purchased: false, est_cost: 0, notes: "" });
     setEditId(null);
     const { data: d } = await supabase.from("supplies").select("*");
     setData({ ...data, supplies: d || [] });
@@ -634,48 +846,63 @@ function SuppliesNeeded({ data, setData, userId }) {
 
   return (
     <div className="tab">
-      <Toolbar query={table.query} setQuery={table.setQuery} sortKey={table.sortKey} setSortKey={table.setSortKey} sortDir={table.sortDir} setSortDir={table.setSortDir} sortOptions={[{ key: "category", label: "Category" }, { key: "name", label: "Name" }, { key: "est_cost", label: "Cost" }]} placeholder="Search supplies..." addLabel="Add Supply" onAdd={() => setEditId("new")} />
-      {table.view.length === 0 ? <Empty icon={ShoppingCart} label="No Supplies" hint="Create your supply list." /> : (
+      <Toolbar query={table.query} setQuery={table.setQuery} sortKey={table.sortKey} setSortKey={table.setSortKey} sortDir={table.sortDir} setSortDir={table.setSortDir} sortOptions={[{ key: "category", label: "Category" }, { key: "name", label: "Name" }, { key: "est_cost", label: "Cost" }]} placeholder="Search supplies needed..." addLabel="Add Supply" onAdd={() => setEditId("new")} />
+      {table.view.length === 0 ? (
+        <Empty icon={ShoppingCart} label="No Supplies" hint="Create your supplies needed list." />
+      ) : (
         <div style={{display: "grid", gap: 8}}>
           {table.view.map(s => (
             <div key={s.id} style={{display: "flex", alignItems: "center", gap: 12, padding: 12, background: s.purchased ? "var(--panel2)" : "var(--panel)", border: "1px solid var(--line)", borderRadius: "var(--radius)", opacity: s.purchased ? 0.6 : 1}}>
               <input type="checkbox" checked={s.purchased} onChange={() => toggle(s.id)} />
-              <div style={{flex: 1}}><strong>{s.name}</strong><span style={{display: "block", fontSize: 11, color: "var(--dim)"}}>{s.category}{s.linked_item ? ` • Linked: ${s.linked_item}` : ""}</span></div>
+              <div style={{flex: 1}}><strong>{s.name}</strong><span style={{display: "block", fontSize: 11, color: "var(--dim)"}}>{s.category}</span></div>
               <span style={{color: "var(--dim)", fontSize: 12}}>{money(s.est_cost)}</span>
-              <ThreeDotMenu items={[{ label: "Edit", onClick: () => { setNewSupply(s); setEditId(s.id); } }, { label: "Delete", onClick: () => del(s.id), danger: true, icon: Trash2 }]} />
+              <PersistentMenu items={[{ label: "Edit", onClick: () => { setNewSupply(s); setEditId(s.id); } }, { label: "Delete", onClick: () => del(s.id), danger: true, icon: Trash2 }]} />
             </div>
           ))}
         </div>
       )}
-      {editId && <Modal title={editId === "new" ? "Add Supply" : "Edit Supply"} onClose={() => setEditId(null)}><Field label="Category"><select value={newSupply.category} onChange={(e) => setNewSupply({...newSupply, category: e.target.value})}><option>Select...</option>{SUPPLY_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}</select></Field><Field label="Name"><input value={newSupply.name} onChange={(e) => setNewSupply({...newSupply, name: e.target.value})} /></Field><Field label="Estimated Cost"><input type="number" value={newSupply.est_cost} onChange={(e) => setNewSupply({...newSupply, est_cost: parseFloat(e.target.value)})} /></Field><Field label="Link to Ammo/Add-On"><select value={newSupply.linked_item} onChange={(e) => setNewSupply({...newSupply, linked_item: e.target.value})}><option value="">None</option><optgroup label="Ammunition">{(data.ammo || []).map(a => <option key={a.id} value={a.id}>{a.caliber} {a.type}</option>)}</optgroup><optgroup label="Add-Ons">{(data.accessories || []).map(acc => <option key={acc.id} value={acc.id}>{acc.description}</option>)}</optgroup></select></Field><Field label="Notes"><textarea value={newSupply.notes} onChange={(e) => setNewSupply({...newSupply, notes: e.target.value})} style={{minHeight: 60}} /></Field><button className="primary" onClick={save} style={{width: "100%"}}>Save</button></Modal>}
+      {editId && (
+        <Modal title={editId === "new" ? "Add Supply Needed" : "Edit Supply Needed"} onClose={() => setEditId(null)}>
+          <Field label="Category"><select value={newSupply.category} onChange={(e) => setNewSupply({...newSupply, category: e.target.value})}><option>Select...</option>{SUPPLY_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}</select></Field>
+          <Field label="Name"><input value={newSupply.name} onChange={(e) => setNewSupply({...newSupply, name: e.target.value})} /></Field>
+          <Field label="Estimated Cost"><input type="number" value={newSupply.est_cost} onChange={(e) => setNewSupply({...newSupply, est_cost: parseFloat(e.target.value)})} /></Field>
+          <Field label="Notes"><textarea value={newSupply.notes} onChange={(e) => setNewSupply({...newSupply, notes: e.target.value})} style={{minHeight: 60}} /></Field>
+          <button className="primary" onClick={save} style={{width: "100%"}}>Save</button>
+        </Modal>
+      )}
     </div>
   );
 }
 
+// FOR SALE
 function ForSale({ data, setData }) {
   const firearms = (data.firearms || []).filter(f => f.for_sale);
-  const addons = (data.accessories || []).filter(a => a.for_sale);
+  const attachments = (data.accessories || []).filter(a => a.for_sale);
 
   return (
     <div className="tab">
       <h3 style={{marginBottom: 16, fontFamily: "'Oswald',sans-serif", fontSize: 16}}>Firearms for Sale</h3>
-      {firearms.length === 0 ? <Empty icon={Target} label="No Firearms Listed" hint="Mark a firearm for sale from the Firearms tab." /> : (
+      {firearms.length === 0 ? (
+        <Empty icon={Target} label="No Firearms Listed" hint="Mark a firearm for sale from the Firearms tab." />
+      ) : (
         <div className="card-grid">
           {firearms.map(f => (
             <div key={f.id} className="sale-card">
-              <div className="card-head"><div><strong>{f.nickname || f.manufacturer}</strong><span className="dim">{f.model}</span></div></div>
-              <div className="card-body"><span>{f.caliber} {f.type}</span><span className="dim">Asking: {money(f.for_sale_listed_at ? (f.current_value || f.value) : "—")}</span><span className="dim">Listed: {f.for_sale_listed_at || "Not listed yet"}</span></div>
+              <div className="card-head"><div><strong>{f.manufacturer}</strong><span className="dim">{f.model}</span></div></div>
+              <div className="card-body"><span>{f.caliber} {f.type}</span><span className="dim">Asking: {money(f.cost)}</span><span className="dim">Listed: {f.for_sale_listed_at || "Recent"}</span></div>
             </div>
           ))}
         </div>
       )}
-      <h3 style={{marginTop: 24, marginBottom: 16, fontFamily: "'Oswald',sans-serif", fontSize: 16}}>Add-Ons for Sale</h3>
-      {addons.length === 0 ? <Empty icon={Package} label="No Add-Ons Listed" hint="Mark an add-on for sale from the Add-Ons tab." /> : (
+      <h3 style={{marginTop: 24, marginBottom: 16, fontFamily: "'Oswald',sans-serif", fontSize: 16}}>Attachments for Sale</h3>
+      {attachments.length === 0 ? (
+        <Empty icon={Package} label="No Attachments Listed" hint="Mark an attachment for sale from the Attachments tab." />
+      ) : (
         <div className="card-grid">
-          {addons.map(a => (
+          {attachments.map(a => (
             <div key={a.id} className="sale-card">
               <div className="card-head"><div><strong>{a.description}</strong><span className="dim">{a.type}</span></div></div>
-              <div className="card-body"><span>{a.manufacturer || "—"} {a.model || ""}</span><span className="dim">Asking: {money(a.for_sale_listed_at ? a.cost : "—")}</span><span className="dim">Listed: {a.for_sale_listed_at || "Not listed yet"}</span></div>
+              <div className="card-body"><span>{a.manufacturer || "—"} {a.model || ""}</span><span className="dim">Asking: {money(a.cost)}</span><span className="dim">Listed: {a.for_sale_listed_at || "Recent"}</span></div>
             </div>
           ))}
         </div>
@@ -684,13 +911,14 @@ function ForSale({ data, setData }) {
   );
 }
 
+// SUPPORT
 function Support() {
   const docs = [
-    { category: "Getting Started", items: [{ title: "Creating Your First Firearm", content: "Click 'Add Firearm' and enter the manufacturer, model, caliber, and type. You can add a nickname to personalize it. Save your serial number for reference." }, { title: "Understanding the Dashboard", content: "The dashboard shows your collection stats and upcoming maintenance. Click any stat to jump to that section. The Up-Keep tiles show which firearms need attention." }] },
-    { category: "Inventory Management", items: [{ title: "Managing Firearms", content: "View all your firearms in the Firearms tab. Search by nickname or manufacturer. Sort by date acquired or current value. Edit any firearm to update details. Mark as damaged if needed." }, { title: "Tracking Add-Ons", content: "Scopes, holsters, lights, and other accessories go in the Add-Ons tab. Assign them to specific firearms. Track cost and condition." }, { title: "Ammunition Inventory", content: "Log your ammunition by caliber and type. Track quantity and storage location. Track cost per round to monitor spending." }] },
-    { category: "Maintenance & Safety", items: [{ title: "Up-Keep Schedule", content: "The Up-Keep tab tracks: Cleaning (30 days after firing), Oiling (180 days), Chamber wipes (180 days), Yearly tear-downs (365 days), Safe audits (90 days), Optic checks (180 days), and Holster checks (30 days for carry guns)." }, { title: "Damage Tracking", content: "If a firearm is damaged, mark it in the Firearms tab. Add a description, severity, repair cost estimate, and photos. Click 'Clear Damage' when resolved." }, { title: "Safe Audits", content: "Perform a safe audit every 90 days. The dashboard reminds you. Click the 'Safe Audit' tile in Up-Keep to reset the timer after completion." }] },
-    { category: "Range & Training", items: [{ title: "Logging Range Visits", content: "Click 'Add Log Entry' in the Range Log tab. Select the firearm, date, location, and rounds fired. Notes are optional. Upload target photos to track your progress." }, { title: "Building Load-Outs", content: "Create custom range load-outs with firearms and ammo. Mark your favorite. The system learns from your history to suggest ammo quantities." }] },
-    { category: "Gun Parts", items: [{ title: "Tracking Components", content: "The Gun Parts tab tracks barrels, bolts, triggers, uppers, lowers, stocks, and 17+ other categories. Track manufacturer, model, cost, and condition." }, { title: "Maintenance Parts", content: "Keep an inventory of spare springs, pins, extractors, and other internals. Track what you have and what you need to order." }] },
+    { category: "Getting Started", items: [{ title: "Creating Your First Firearm", content: "Click 'Add Firearm' in the Firearms tab. Enter the manufacturer, model, caliber, and type. Add the serial number and the cost. The Date Purchased is optional. Save." }, { title: "Understanding the Dashboard", content: "The dashboard shows your collection stats and maintenance alerts. Click any stat to jump to that section. The Up-Keep tiles show which firearms need attention and how many are due." }] },
+    { category: "Inventory Management", items: [{ title: "Managing Firearms", content: "View all your firearms in the Firearms tab. Search by manufacturer or model. Sort by date purchased or cost. Edit any firearm to update details or add a photo. Move firearms to the For Sale tab when ready to sell." }, { title: "Tracking Attachments", content: "Scopes, holsters, lights, and other attachments go in the Attachments tab. Assign them to specific firearms. Track cost and condition." }, { title: "Ammunition Inventory", content: "Log your ammunition by caliber and type in the Ammunition tab. Track quantity and storage location. Track cost per round to monitor spending." }] },
+    { category: "Maintenance & Safety", items: [{ title: "Up-Keep Schedule", content: "The Up-Keep tab tracks: Cleaning (30 days after firing), Oiling (180 days), Yearly tear-downs (365 days), Optic checks (180 days), and Holster checks (30 days for carry guns). Click 'Clear' when you complete each task." }, { title: "Safe Audit", content: "Your safe audit is a 3-month rolling timer independent of your firearms. It reminds you to clear humidity and maintain dehumidification items in your safe. Click the checkmark in the Up-Keep dashboard to reset the timer after completion." }, { title: "Damage Tracking", content: "If a firearm is damaged, mark it in the Firearms tab. Add a description, repair cost estimate. It will show as 'Damaged' until you clear it." }] },
+    { category: "Range & Training", items: [{ title: "Logging Range Visits", content: "Click 'Go to Range' in the Range Log tab. Enter the range name (it will save for quick selection next time), select the firearms you brought, and enter notes. Start the visit and then enter rounds fired for each firearm. The app will automatically update your ammunition inventory." }, { title: "Building Load-Outs", content: "Create custom range load-outs in the Load Out tab. Select the firearms you'll bring. The app calculates total rounds based on your history. Mark your favorite load-out for quick access." }, { title: "Initiate Range Visit from Load-Out", content: "Select a load-out and click 'Initiate Range Visit' to start a range session with pre-populated firearms." }] },
+    { category: "Gun Parts", items: [{ title: "Tracking Components", content: "The Gun Parts tab tracks barrels, bolts, triggers, uppers, lowers, stocks, and 20+ other categories. Track manufacturer, model, cost, and condition." }, { title: "Maintenance Parts", content: "Keep an inventory of spare springs, pins, extractors, and other internals. Track what you have and what you need to order." }] },
   ];
 
   return (
@@ -713,8 +941,8 @@ function Support() {
     </div>
   );
 }
-function Changelog() { return <div className="tab"><div className="changelog">{CHANGELOG.map((rel) => (<div className="release" key={rel.version}><div className="release-rail"><div className={`release-dot ${rel.tag === "current" ? "cur" : ""}`} /></div><div className="release-body"><div className="release-head"><span className="ver">v{rel.version}</span><h3>{rel.title}</h3>{rel.tag === "current" && <span className="cur-badge">Current</span>}<span className="rel-date">{rel.date}</span></div><ul className="change-list">{rel.changes.map((c, i) => <li key={i}><span className={`ct ct-${c.type}`}>{c.type}</span><span>{c.text}</span></li>)}</ul></div></div>))}</div></div>; }
 
+// ADMIN
 function Admin({ currentUser, data, setData }) {
   const isSuperAdmin = currentUser?.email === SUPER_ADMIN_EMAIL;
   const [users, setUsers] = useState([]);
@@ -771,7 +999,7 @@ function Admin({ currentUser, data, setData }) {
       <div className="admin-container">
         <div className="admin-section">
           <h3>Registered Users ({users.length})</h3>
-          <div className="search" style={{ marginBottom: 16 }}><Search size={16} /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search email…" /></div>
+          <div className="search-big" style={{ marginBottom: 16 }}><Search size={16} /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search email…" /></div>
           {loading ? <p>Loading…</p> : (
             <table className="grid-table">
               <thead><tr><th>Email</th><th>Role</th><th>Joined</th><th></th></tr></thead>
@@ -811,6 +1039,101 @@ function Admin({ currentUser, data, setData }) {
   );
 }
 
+// CHANGELOG
+function Changelog() {
+  return (
+    <div className="tab">
+      <div className="changelog">
+        {CHANGELOG.map((rel) => (
+          <div className="release" key={rel.version}>
+            <div className="release-rail"><div className={`release-dot ${rel.tag === "current" ? "cur" : ""}`} /></div>
+            <div className="release-body">
+              <div className="release-head">
+                <span className="ver">v{rel.version}</span>
+                <h3>{rel.title}</h3>
+                {rel.tag === "current" && <span className="cur-badge">Current</span>}
+                <span className="rel-date">{rel.date}</span>
+              </div>
+              <ul className="change-list">
+                {rel.changes.map((c, i) => (
+                  <li key={i}>
+                    <span className={`ct ct-${c.type}`}>{c.type}</span>
+                    <span>{c.text}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// GEMINI CHATBOT
+function GeminiChatbot() {
+  const [open, setOpen] = useState(false);
+  const [messages, setMessages] = useState([{ role: "assistant", text: "Hi! I'm the Gun Shed assistant. Ask me anything about your firearms, maintenance, or how to use the app." }]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const sendMessage = async () => {
+    if (!input.trim() || !GEMINI_API_KEY) return;
+    
+    const userMsg = { role: "user", text: input };
+    setMessages(prev => [...prev, userMsg]);
+    setInput("");
+    setLoading(true);
+
+    try {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: input }] }]
+        })
+      });
+
+      const data = await response.json();
+      const assistantText = data.candidates?.[0]?.content?.parts?.[0]?.text || "I couldn't generate a response. Please try again.";
+      setMessages(prev => [...prev, { role: "assistant", text: assistantText }]);
+    } catch (e) {
+      setMessages(prev => [...prev, { role: "assistant", text: "Error connecting to AI. Please try again." }]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <>
+      <button className="chatbot-fab" onClick={() => setOpen(!open)} title="Ask AI">
+        <MessageCircle size={20} />
+      </button>
+      {open && (
+        <div className="chatbot-modal">
+          <div className="chatbot-head">
+            <strong>Gun Shed Assistant</strong>
+            <button className="icon-btn" onClick={() => setOpen(false)}><X size={16} /></button>
+          </div>
+          <div className="chatbot-messages">
+            {messages.map((msg, i) => (
+              <div key={i} className={`message ${msg.role}`}>
+                <span>{msg.text}</span>
+              </div>
+            ))}
+            {loading && <div className="message assistant"><span>Thinking...</span></div>}
+          </div>
+          <div className="chatbot-input">
+            <input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && sendMessage()} placeholder="Ask me anything..." />
+            <button className="primary small" onClick={sendMessage} disabled={loading}><Send size={14} /></button>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+// MAIN APP
 export default function App() {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
@@ -819,6 +1142,7 @@ export default function App() {
   const [data, setData] = useState({ firearms: [], rangelog: [], accessories: [], ammo: [], loadouts: [], supplies: [], gunparts: [] });
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [safeAuditDue, setSafeAuditDue] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -828,7 +1152,8 @@ export default function App() {
         await loadProfile(session.user.id);
         await loadData();
       }
-      setAuthChecked(true); setLoading(false);
+      setAuthChecked(true);
+      setLoading(false);
     })();
   }, []);
 
@@ -873,7 +1198,8 @@ export default function App() {
 
   const logout = async () => {
     await supabase.auth.signOut();
-    setUser(null); setProfile(null);
+    setUser(null);
+    setProfile(null);
     setData({ firearms: [], rangelog: [], accessories: [], ammo: [], loadouts: [], supplies: [], gunparts: [] });
     setTab("dashboard");
   };
@@ -887,19 +1213,19 @@ export default function App() {
   const NAV = [
     { key:"dashboard", label:"Dashboard", icon: LayoutDashboard },
     { key:"firearms", label:"Firearms", icon: Target },
+    { key:"attachments", label:"Attachments", icon: Package },
+    { key:"gunparts", label:"Gun Parts", icon: Hammer },
+    { key:"ammunition", label:"Ammunition", icon: Boxes },
+    { key:"upkeep", label:"Up-Keep", icon: Wrench },
     { key:"rangelog", label:"Range Log", icon: MapPin },
     { key:"loadout", label:"Load Out", icon: Backpack },
-    { key:"gunparts", label:"Gun Parts", icon: Hammer },
-    { key:"upkeep", label:"Up-Keep", icon: Wrench },
-    { key:"addons", label:"Add-Ons", icon: Package },
-    { key:"ammunition", label:"Ammunition", icon: Boxes },
-    { key:"supplies", label:"Supplies", icon: ShoppingCart },
+    { key:"supplies", label:"Supplies Needed", icon: ShoppingCart },
     { key:"forsale", label:"For Sale", icon: Tag },
     { key:"support", label:"Support", icon: HelpCircle },
   ];
   if (isAdmin) {
     NAV.push({ key:"admin", label:"Admin", icon: Users });
-    NAV.push({ key:"changelog", label:"Changelog", icon: ScrollText });
+    NAV.push({ key:"changelog", label:"Change Log", icon: ScrollText });
   }
 
   return (
@@ -911,13 +1237,15 @@ export default function App() {
             <button className="mobile-close" onClick={() => setMobileMenuOpen(false)}><X size={20} /></button>
             <div className="brand-top"><LogoIcon size={20} /><span>THE GUN SHED</span></div>
           </div>
-          <nav>{NAV.map((n) => (
-            <button key={n.key} className={tab === n.key ? "on" : ""} onClick={() => { setTab(n.key); setMobileMenuOpen(false); }}>
-              <n.icon size={17} /><span>{n.label}</span>
-              {isAdmin && (n.key === "admin" || n.key === "changelog") && <span className="admin-dot" />}
-              {isSuperAdmin && n.key === "admin" && <span className="super-dot" title="Super Admin">★</span>}
-            </button>
-          ))}</nav>
+          <nav>
+            {NAV.map((n) => (
+              <button key={n.key} className={tab === n.key ? "on" : ""} onClick={() => { setTab(n.key); setMobileMenuOpen(false); }}>
+                <n.icon size={17} /><span>{n.label}</span>
+                {isAdmin && (n.key === "admin" || n.key === "changelog") && <span className="admin-dot" />}
+                {isSuperAdmin && n.key === "admin" && <span className="super-dot" title="Super Admin">★</span>}
+              </button>
+            ))}
+          </nav>
           <div className="side-foot">
             <div className="user">
               <div className="avatar">{user?.email?.[0]?.toUpperCase()}</div>
@@ -936,16 +1264,20 @@ export default function App() {
             <h1>{NAV.find((n) => n.key === tab)?.label}</h1>
           </div>
           <div className="content">
-            {loading ? <div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"400px",color:"var(--dim)"}}><Loader size={20} style={{animation:"spin 1s linear infinite",marginRight:"10px"}} />Loading…</div> : (
+            {loading ? (
+              <div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"400px",color:"var(--dim)"}}>
+                <Loader size={20} style={{animation:"spin 1s linear infinite",marginRight:"10px"}} />Loading…
+              </div>
+            ) : (
               <>
                 {tab === "dashboard" && <Dashboard data={data} go={setTab} />}
                 {tab === "firearms" && <Firearms data={data} setData={setData} userId={user.id} />}
+                {tab === "attachments" && <Attachments data={data} setData={setData} userId={user.id} />}
+                {tab === "gunparts" && <GunParts data={data} setData={setData} userId={user.id} />}
+                {tab === "ammunition" && <Ammunition data={data} setData={setData} userId={user.id} />}
+                {tab === "upkeep" && <UpKeep data={data} setData={setData} safeAuditReset={() => setSafeAuditDue(false)} />}
                 {tab === "rangelog" && <RangeLog data={data} setData={setData} userId={user.id} />}
                 {tab === "loadout" && <RangeLoadOut data={data} setData={setData} userId={user.id} />}
-                {tab === "gunparts" && <GunParts data={data} setData={setData} userId={user.id} />}
-                {tab === "upkeep" && <UpKeep data={data} setData={setData} />}
-                {tab === "addons" && <AddOns data={data} setData={setData} userId={user.id} />}
-                {tab === "ammunition" && <Ammunition data={data} setData={setData} userId={user.id} />}
                 {tab === "supplies" && <SuppliesNeeded data={data} setData={setData} userId={user.id} />}
                 {tab === "forsale" && <ForSale data={data} setData={setData} />}
                 {tab === "support" && <Support />}
@@ -956,6 +1288,7 @@ export default function App() {
           </div>
         </main>
       </div>
+      <GeminiChatbot />
     </>
   );
 }
@@ -994,6 +1327,27 @@ function Styles() {
     .mobile-close { display:none; background:transparent; border:none; color:var(--text); cursor:pointer; }
     .content { flex:1; padding:24px 32px 60px; overflow-y:auto; }
     .tab { position:relative; }
+    .dashboard-welcome { margin-bottom:24px; }
+    .dashboard-welcome h2 { font-family:'Oswald',sans-serif; font-size:24px; margin-bottom:4px; color:var(--accent); }
+    .dashboard-welcome p { color:var(--dim); font-size:14px; }
+    .dashboard-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:12px; margin-bottom:24px; }
+    .upkeep-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(180px, 1fr)); gap:10px; }
+    .upkeep-card { display:flex; align-items:center; gap:12px; background:var(--panel); border:1px solid var(--line); border-left-width:3px; border-radius:var(--radius); padding:12px 14px; transition:all .15s; }
+    .upkeep-card:hover { transform:translateY(-1px); border-color:var(--line2); }
+    .upkeep-ico { color:var(--accent); }
+    .upkeep-body { display:flex; flex-direction:column; gap:2px; }
+    .upkeep-label { font-size:11px; color:var(--dim); }
+    .upkeep-count { font-family:'Oswald',sans-serif; font-size:18px; font-weight:600; }
+    .card-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:12px; }
+    .firearm-card, .log-card, .addon-card, .part-card, .ammo-card, .sale-card, .loadout-card { background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:14px; transition:all .15s; }
+    .firearm-card:hover, .log-card:hover, .addon-card:hover, .part-card:hover, .ammo-card:hover, .sale-card:hover, .loadout-card:hover { transform:translateY(-2px); border-color:var(--line2); }
+    .card-head { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:10px; }
+    .card-head div { display:flex; flex-direction:column; gap:2px; }
+    .card-head strong { font-size:14px; }
+    .card-body { display:flex; flex-direction:column; gap:4px; margin-bottom:8px; font-size:12px; }
+    .card-body span { color:var(--text); }
+    .card-body .dim { color:var(--dim); }
+    .card-foot { display:flex; justify-content:space-between; align-items:center; padding-top:8px; border-top:1px solid var(--line); font-size:12px; color:var(--dim); }
     .empty { display:flex; flex-direction:column; align-items:center; gap:8px; padding:70px 20px; color:var(--faint); text-align:center; border:1px dashed var(--line2); border-radius:var(--radius); }
     .empty strong { font-size:15px; color:var(--dim); font-family:'Oswald',sans-serif; }
     .login-wrap { min-height:100vh; display:grid; place-items:center; position:relative; padding:20px; overflow:hidden; }
@@ -1006,8 +1360,8 @@ function Styles() {
     .seg button.on { background:var(--accent); color:#fff; }
     .fld { display:flex; flex-direction:column; gap:5px; margin-bottom:13px; }
     .fld span { font-size:11px; text-transform:uppercase; letter-spacing:.6px; color:var(--faint); }
-    .fld input { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:10px 12px; color:var(--text); font-family:inherit; font-size:13px; outline:none; transition:border-color .15s; }
-    .fld input:focus { border-color:var(--accent); }
+    .fld input, .fld select, .fld textarea { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:10px 12px; color:var(--text); font-family:inherit; font-size:13px; outline:none; transition:border-color .15s; }
+    .fld input:focus, .fld select:focus, .fld textarea:focus { border-color:var(--accent); }
     .err { display:flex; align-items:center; gap:6px; background:rgba(193,84,79,0.12); border:1px solid rgba(193,84,79,0.35); color:#d98a84; font-size:12px; padding:8px 11px; border-radius:7px; margin-bottom:12px; }
     .note { display:flex; align-items:flex-start; gap:6px; color:var(--faint); font-size:11px; margin-top:16px; line-height:1.45; }
     .admin-container { display:flex; flex-direction:column; gap:24px; }
@@ -1032,8 +1386,6 @@ function Styles() {
     .pending-item strong { font-size:13px; }
     .pending-item .dim { font-size:11px; }
     .pending-item .actions { display:flex; gap:8px; }
-    .help-fab { position:fixed; bottom:24px; right:24px; width:44px; height:44px; border-radius:50%; background:var(--accent); color:#fff; border:none; cursor:pointer; display:grid; place-items:center; box-shadow:0 8px 24px rgba(0,0,0,0.4); transition:all .2s; z-index:50; }
-    .help-fab:hover { transform:scale(1.1); background:var(--accent-d); }
     .modal-back { position:fixed; inset:0; background:rgba(10,9,6,0.78); display:grid; place-items:center; z-index:100; padding:20px; backdrop-filter:blur(2px); }
     .modal { background:var(--bg2); border:1px solid var(--line2); border-radius:14px; width:100%; max-width:560px; max-height:90vh; overflow:auto; }
     .modal.wide { max-width:760px; }
@@ -1063,8 +1415,18 @@ function Styles() {
     .stat-val { font-family:'Oswald',sans-serif; font-size:23px; font-weight:600; }
     .stat-lbl { font-size:11px; color:var(--dim); margin-top:4px; text-transform:uppercase; letter-spacing:.6px; }
     .status-pill { display:inline-flex; align-items:center; gap:4px; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.4px; padding:2px 8px; border-radius:12px; border:1px solid; background:rgba(0,0,0,0.15); }
-    .search { display:flex; align-items:center; gap:8px; background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:0 11px; color:var(--faint); }
-    .search input { background:transparent; border:none; outline:none; color:var(--text); font-family:inherit; font-size:13px; padding:9px 0; width:100%; }
+    .search-big { display:flex; align-items:center; gap:12px; background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:0 14px; flex:1; color:var(--faint); }
+    .search-big input { background:transparent; border:none; outline:none; color:var(--text); font-family:inherit; font-size:14px; padding:12px 0; width:100%; }
+    .toolbar { display:flex; align-items:center; gap:12px; margin-bottom:20px; flex-wrap:wrap; }
+    .sort { display:flex; align-items:center; gap:8px; }
+    .sort select { background:var(--panel); border:1px solid var(--line); color:var(--text); padding:7px 10px; border-radius:7px; font-size:12px; }
+    .sort .dir { background:var(--panel2); border:1px solid var(--line); color:var(--dim); width:28px; height:28px; border-radius:6px; cursor:pointer; display:grid; place-items:center; font-weight:700; font-size:11px; }
+    .spacer { flex:1; }
+    .persistent-menu-wrap { position:relative; }
+    .persistent-menu { position:absolute; right:0; top:36px; background:var(--panel2); border:1px solid var(--line2); border-radius:8px; padding:4px; z-index:30; min-width:180px; box-shadow:0 12px 30px rgba(0,0,0,0.4); }
+    .persistent-menu button { display:flex; align-items:center; gap:7px; width:100%; background:transparent; border:none; color:var(--text); padding:8px 10px; font-family:inherit; font-size:12.5px; cursor:pointer; border-radius:5px; text-align:left; }
+    .persistent-menu button:hover { background:var(--panel); }
+    .persistent-menu button.danger { color:var(--danger); }
     .changelog { display:flex; flex-direction:column; }
     .release { display:grid; grid-template-columns:34px 1fr; }
     .release-rail { display:flex; justify-content:center; position:relative; }
@@ -1086,33 +1448,17 @@ function Styles() {
     .ct-changed { background:rgba(196,169,74,0.15); color:var(--gold); border:1px solid rgba(196,169,74,0.35); }
     .ct-fixed { background:rgba(214,124,63,0.15); color:var(--accent); border:1px solid rgba(214,124,63,0.35); }
     .ct-removed { background:rgba(193,84,79,0.15); color:var(--danger); border:1px solid rgba(193,84,79,0.35); }
-    .spacer { flex:1; }
-    .three-dot-wrap { position:relative; }
-    .three-dot-menu { position:absolute; right:0; top:36px; background:var(--panel2); border:1px solid var(--line2); border-radius:8px; padding:4px; z-index:30; min-width:180px; box-shadow:0 12px 30px rgba(0,0,0,0.4); }
-    .three-dot-menu button { display:flex; align-items:center; gap:7px; width:100%; background:transparent; border:none; color:var(--text); padding:8px 10px; font-family:inherit; font-size:12.5px; cursor:pointer; border-radius:5px; text-align:left; }
-    .three-dot-menu button:hover { background:var(--panel); }
-    .three-dot-menu button.danger { color:var(--danger); }
-    .toolbar { display:flex; align-items:center; gap:10px; margin-bottom:20px; flex-wrap:wrap; }
-    .dashboard-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:12px; margin-bottom:24px; }
-    .card-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:12px; }
-    .firearm-card, .log-card, .addon-card, .part-card, .ammo-card, .sale-card, .loadout-card { background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:14px; transition:all .15s; }
-    .firearm-card:hover, .log-card:hover, .addon-card:hover, .part-card:hover, .ammo-card:hover, .sale-card:hover, .loadout-card:hover { transform:translateY(-2px); border-color:var(--line2); }
-    .card-head { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:10px; }
-    .card-head div { display:flex; flex-direction:column; gap:2px; }
-    .card-head strong { font-size:14px; }
-    .card-body { display:flex; flex-direction:column; gap:4px; margin-bottom:8px; font-size:12px; }
-    .card-body span { color:var(--text); }
-    .card-body .dim { color:var(--dim); }
-    .card-foot { display:flex; justify-content:space-between; align-items:center; padding-top:8px; border-top:1px solid var(--line); font-size:12px; color:var(--dim); }
-    .upkeep-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:10px; }
-    .upkeep-card { display:flex; align-items:center; gap:12px; background:var(--panel); border:1px solid var(--line); border-left-width:3px; border-radius:var(--radius); padding:12px 14px; transition:all .15s; }
-    .upkeep-card:hover { transform:translateY(-1px); border-color:var(--line2); }
-    .upkeep-ico { color:var(--accent); }
-    .upkeep-body { display:flex; flex-direction:column; gap:2px; }
-    .upkeep-label { font-size:12px; color:var(--dim); }
-    .upkeep-count { font-family:'Oswald',sans-serif; font-size:18px; font-weight:600; }
-    summary { outline:none; }
-    summary::-webkit-details-marker { color:var(--accent); margin-right:4px; }
+    .chatbot-fab { position:fixed; bottom:24px; right:24px; width:50px; height:50px; border-radius:50%; background:var(--accent); color:#fff; border:none; cursor:pointer; display:grid; place-items:center; box-shadow:0 8px 24px rgba(0,0,0,0.4); transition:all .2s; z-index:50; }
+    .chatbot-fab:hover { transform:scale(1.1); background:var(--accent-d); }
+    .chatbot-modal { position:fixed; bottom:90px; right:24px; width:380px; height:500px; background:var(--bg2); border:1px solid var(--line2); border-radius:14px; display:flex; flex-direction:column; box-shadow:0 20px 60px rgba(0,0,0,0.4); z-index:50; }
+    .chatbot-head { padding:14px 16px; border-bottom:1px solid var(--line); font-weight:600; display:flex; justify-content:space-between; align-items:center; }
+    .chatbot-messages { flex:1; padding:14px 16px; overflow-y:auto; display:flex; flex-direction:column; gap:10px; }
+    .message { padding:10px 12px; border-radius:8px; max-width:80%; word-wrap:break-word; }
+    .message.user { background:var(--accent); color:#fff; margin-left:auto; }
+    .message.assistant { background:var(--panel); color:var(--text); margin-right:auto; }
+    .chatbot-input { display:flex; gap:8px; padding:12px 16px; border-top:1px solid var(--line); }
+    .chatbot-input input { flex:1; background:var(--panel); border:1px solid var(--line); color:var(--text); padding:8px 10px; border-radius:6px; font-family:inherit; font-size:12px; outline:none; }
+    .chatbot-input button { padding:8px 12px; }
     @media (max-width:768px) {
       .sidebar { position:fixed; left:0; top:0; bottom:0; z-index:100; width:280px; transform:translateX(-100%); transition:transform .3s; }
       .sidebar.open { transform:translateX(0); }
@@ -1122,6 +1468,8 @@ function Styles() {
       .content { padding:16px 16px 60px; }
       .topbar { padding:14px 14px; }
       .topbar h1 { font-size:18px; }
+      .card-grid { grid-template-columns:1fr; }
+      .chatbot-modal { width:90vw; max-width:380px; }
     }
   `}</style>;
 }
