@@ -287,7 +287,7 @@ function Dashboard({ data, go }) {
 function Firearms({ data, setData, userId }) {
   const [editId, setEditId] = useState(null);
   const [newFire, setNewFire] = useState({ manufacturer: "", model: "", serial: "", caliber: "", type: "", date_purchased: today(), cost: 0, notes: "", photo_path: "" });
-  const firearms = data.firearms || [];
+  const firearms = (data.firearms || []).filter(f => !f.for_sale);
   const table = useTable(firearms, ["manufacturer", "model", "serial", "caliber"], "manufacturer");
 
   const save = async () => {
@@ -316,13 +316,26 @@ function Firearms({ data, setData, userId }) {
   };
 
   const uploadPhoto = async (file, id) => {
+    if (!file) return;
     const err = validateImage(file, IMAGE_MAX_MB);
     if (err) { alert(err); return; }
-    const path = `${userId}/firearms/${id}/${uid()}.${file.name.split(".").pop()}`;
-    const { error } = await supabase.storage.from("firearm-photos").upload(path, file);
-    if (error) { alert("Upload failed: " + error.message); return; }
-    await supabase.from("firearms").update({ photo_path: path }).eq("id", id);
-    setData({ ...data, firearms: firearms.map(f => f.id === id ? { ...f, photo_path: path } : f) });
+    
+    try {
+      const fileName = `${uid()}.${file.name.split(".").pop()}`;
+      const path = `${userId}/firearms/${id}/${fileName}`;
+      
+      const { data, error } = await supabase.storage.from("firearm-photos").upload(path, file, { upsert: true });
+      if (error) throw error;
+      
+      const { data: { publicUrl } } = supabase.storage.from("firearm-photos").getPublicUrl(path);
+      
+      await supabase.from("firearms").update({ photo_path: publicUrl }).eq("id", id);
+      
+      setData({ ...data, firearms: (data.firearms || []).map(f => f.id === id ? { ...f, photo_path: publicUrl } : f) });
+      alert("Photo uploaded successfully!");
+    } catch (e) {
+      alert("Upload failed: " + e.message);
+    }
   };
 
   return (
@@ -338,7 +351,7 @@ function Firearms({ data, setData, userId }) {
             const StatusIcon = status.icon;
             return (
               <div key={f.id} className="firearm-card">
-                {f.photo_path && <div className="card-photo"><img src={f.photo_path} alt={f.manufacturer} style={{ width: "100%", height: "150px", objectFit: "cover", borderRadius: "8px", marginBottom: "10px" }} /></div>}
+                {f.photo_path && <div className="card-photo"><img src={f.photo_path} alt={f.manufacturer} style={{ width: "100%", height: "150px", objectFit: "cover", borderRadius: "8px", marginBottom: "10px" }} onError={(e) => { e.target.style.display = "none"; }} /></div>}
                 <div className="card-head">
                   <div><strong>{f.manufacturer}</strong><span className="dim">{f.model}</span></div>
                   <PersistentMenu items={[{ label: "Edit", onClick: () => { setNewFire(f); setEditId(f.id); } }, { label: "Move to For Sale", onClick: () => moveToForSale(f.id), icon: Tag }, { label: "Delete", onClick: () => del(f.id), danger: true, icon: Trash2 }]} />
