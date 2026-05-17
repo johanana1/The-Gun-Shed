@@ -296,7 +296,7 @@ function Firearms({ data, setData, userId }) {
 
   const save = async () => {
     const rec = { ...newFire, user_id: userId };
-    if (editId) {
+    if (editId && editId !== "new") {
       await supabase.from("firearms").update(rec).eq("id", editId);
     } else {
       rec.id = uid();
@@ -335,7 +335,7 @@ function Firearms({ data, setData, userId }) {
       
       await supabase.from("firearms").update({ photo_path: publicUrl }).eq("id", id);
       
-      setData({ ...data, firearms: (data.firearms || []).map(f => f.id === id ? { ...f, photo_path: publicUrl } : f) });
+      setData(prevData => ({ ...prevData, firearms: (prevData.firearms || []).map(f => f.id === id ? { ...f, photo_path: publicUrl } : f) }));
       alert("Photo uploaded successfully!");
     } catch (e) {
       alert("Upload failed: " + e.message);
