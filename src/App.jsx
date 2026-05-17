@@ -587,19 +587,19 @@ function RangeLoadOut({ data, setData, userId }) {
 // GUN PARTS
 function GunParts({ data, setData, userId }) {
   const [editId, setEditId] = useState(null);
-  const [newPart, setNewPart] = useState({ category: "", description: "", manufacturer: "", model: "", cost: 0, condition: "excellent", notes: "" });
-  const parts = data.gunparts || [];
+  const [newPart, setNewPart] = useState({ category: "", description: "", manufacturer: "", model: "", cost: 0, condition: "excellent", notes: "", for_sale: false });
+  const parts = (data.gunparts || []).filter(p => !p.for_sale);
   const table = useTable(parts, ["description", "manufacturer", "category"], "category");
 
   const save = async () => {
     const rec = { ...newPart, user_id: userId };
-    if (editId) {
+    if (editId && editId !== "new") {
       await supabase.from("gun_parts").update(rec).eq("id", editId);
     } else {
       rec.id = uid();
       await supabase.from("gun_parts").insert([rec]);
     }
-    setNewPart({ category: "", description: "", manufacturer: "", model: "", cost: 0, condition: "excellent", notes: "" });
+    setNewPart({ category: "", description: "", manufacturer: "", model: "", cost: 0, condition: "excellent", notes: "", for_sale: false });
     setEditId(null);
     const { data: d } = await supabase.from("gun_parts").select("*");
     setData({ ...data, gunparts: d || [] });
@@ -608,7 +608,12 @@ function GunParts({ data, setData, userId }) {
   const del = async (id) => {
     if (!confirm("Delete this gun part?")) return;
     await supabase.from("gun_parts").delete().eq("id", id);
-    setData({ ...data, gunparts: parts.filter(p => p.id !== id) });
+    setData({ ...data, gunparts: (data.gunparts || []).filter(p => p.id !== id) });
+  };
+
+  const moveToForSale = async (id) => {
+    await supabase.from("gun_parts").update({ for_sale: true, for_sale_listed_at: today() }).eq("id", id);
+    setData({ ...data, gunparts: (data.gunparts || []).map(p => p.id === id ? { ...p, for_sale: true, for_sale_listed_at: today() } : p) });
   };
 
   return (
@@ -622,7 +627,7 @@ function GunParts({ data, setData, userId }) {
             <div key={p.id} className="part-card">
               <div className="card-head">
                 <div><strong>{p.description}</strong><span className="dim">{p.category}</span></div>
-                <PersistentMenu items={[{ label: "Edit", onClick: () => { setNewPart(p); setEditId(p.id); } }, { label: "Delete", onClick: () => del(p.id), danger: true, icon: Trash2 }]} />
+                <PersistentMenu items={[{ label: "Edit", onClick: () => { setNewPart(p); setEditId(p.id); } }, { label: "Move to For Sale", onClick: () => moveToForSale(p.id), icon: Tag }, { label: "Delete", onClick: () => del(p.id), danger: true, icon: Trash2 }]} />
               </div>
               <div className="card-body">
                 <span>{p.manufacturer || "—"} {p.model || ""}</span>
@@ -895,6 +900,7 @@ function SuppliesNeeded({ data, setData, userId }) {
 function ForSale({ data, setData }) {
   const firearms = (data.firearms || []).filter(f => f.for_sale);
   const attachments = (data.accessories || []).filter(a => a.for_sale);
+  const parts = (data.gunparts || []).filter(p => p.for_sale);
 
   return (
     <div className="tab">
@@ -920,6 +926,19 @@ function ForSale({ data, setData }) {
             <div key={a.id} className="sale-card">
               <div className="card-head"><div><strong>{a.description}</strong><span className="dim">{a.type}</span></div></div>
               <div className="card-body"><span>{a.manufacturer || "—"} {a.model || ""}</span><span className="dim">Asking: {money(a.cost)}</span><span className="dim">Listed: {a.for_sale_listed_at || "Recent"}</span></div>
+            </div>
+          ))}
+        </div>
+      )}
+      <h3 style={{marginTop: 24, marginBottom: 16, fontFamily: "'Oswald',sans-serif", fontSize: 16}}>Gun Parts for Sale</h3>
+      {parts.length === 0 ? (
+        <Empty icon={Hammer} label="No Gun Parts Listed" hint="Mark gun parts for sale from the Gun Parts tab." />
+      ) : (
+        <div className="card-grid">
+          {parts.map(p => (
+            <div key={p.id} className="sale-card">
+              <div className="card-head"><div><strong>{p.description}</strong><span className="dim">{p.category}</span></div></div>
+              <div className="card-body"><span>{p.manufacturer || "—"} {p.model || ""}</span><span className="dim">Condition: {p.condition}</span><span className="dim">Asking: {money(p.cost)}</span></div>
             </div>
           ))}
         </div>
