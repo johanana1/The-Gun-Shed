@@ -295,17 +295,27 @@ function Firearms({ data, setData, userId }) {
   const table = useTable(firearms, ["manufacturer", "model", "serial", "caliber"], "manufacturer");
 
   const save = async () => {
-    const rec = { ...newFire, user_id: userId };
-    if (editId && editId !== "new") {
-      await supabase.from("firearms").update(rec).eq("id", editId);
-    } else {
-      rec.id = uid();
-      await supabase.from("firearms").insert([rec]);
+    try {
+      const rec = { ...newFire, user_id: userId };
+      if (editId && editId !== "new") {
+        const { error } = await supabase.from("firearms").update(rec).eq("id", editId);
+        if (error) throw error;
+      } else {
+        rec.id = uid();
+        const { error } = await supabase.from("firearms").insert([rec]);
+        if (error) throw error;
+      }
+      
+      const { data: d, error: fetchError } = await supabase.from("firearms").select("*");
+      if (fetchError) throw fetchError;
+      
+      setData(prevData => ({ ...prevData, firearms: d || [] }));
+      setNewFire({ manufacturer: "", model: "", serial: "", caliber: "", type: "", date_purchased: today(), cost: 0, notes: "", photo_path: "" });
+      setEditId(null);
+      alert("Firearm saved successfully!");
+    } catch (e) {
+      alert("Save failed: " + e.message);
     }
-    setNewFire({ manufacturer: "", model: "", serial: "", caliber: "", type: "", date_purchased: today(), cost: 0, notes: "", photo_path: "" });
-    setEditId(null);
-    const { data: d } = await supabase.from("firearms").select("*");
-    setData({ ...data, firearms: d || [] });
   };
 
   const del = async (id) => {
@@ -516,17 +526,27 @@ function RangeLoadOut({ data, setData, userId }) {
   const loadouts = data.loadouts || [];
 
   const save = async () => {
-    const rec = { ...newLoad, user_id: userId };
-    if (editId) {
-      await supabase.from("loadouts").update(rec).eq("id", editId);
-    } else {
-      rec.id = uid();
-      await supabase.from("loadouts").insert([rec]);
+    try {
+      const rec = { ...newLoad, user_id: userId };
+      if (editId && editId !== "new") {
+        const { error } = await supabase.from("loadouts").update(rec).eq("id", editId);
+        if (error) throw error;
+      } else {
+        rec.id = uid();
+        const { error } = await supabase.from("loadouts").insert([rec]);
+        if (error) throw error;
+      }
+      
+      const { data: d, error: fetchError } = await supabase.from("loadouts").select("*");
+      if (fetchError) throw fetchError;
+      
+      setData(prevData => ({ ...prevData, loadouts: d || [] }));
+      setNewLoad({ name: "", favorite: false, notes: "", selected_firearms: [] });
+      setEditId(null);
+      alert("Load out saved successfully!");
+    } catch (e) {
+      alert("Save failed: " + e.message);
     }
-    setNewLoad({ name: "", favorite: false, notes: "", selected_firearms: [] });
-    setEditId(null);
-    const { data: d } = await supabase.from("loadouts").select("*");
-    setData({ ...data, loadouts: d || [] });
   };
 
   const del = async (id) => {
@@ -592,17 +612,27 @@ function GunParts({ data, setData, userId }) {
   const table = useTable(parts, ["description", "manufacturer", "category"], "category");
 
   const save = async () => {
-    const rec = { ...newPart, user_id: userId };
-    if (editId && editId !== "new") {
-      await supabase.from("gun_parts").update(rec).eq("id", editId);
-    } else {
-      rec.id = uid();
-      await supabase.from("gun_parts").insert([rec]);
+    try {
+      const rec = { ...newPart, user_id: userId };
+      if (editId && editId !== "new") {
+        const { error } = await supabase.from("gun_parts").update(rec).eq("id", editId);
+        if (error) throw error;
+      } else {
+        rec.id = uid();
+        const { error } = await supabase.from("gun_parts").insert([rec]);
+        if (error) throw error;
+      }
+      
+      const { data: d, error: fetchError } = await supabase.from("gun_parts").select("*");
+      if (fetchError) throw fetchError;
+      
+      setData(prevData => ({ ...prevData, gunparts: d || [] }));
+      setNewPart({ category: "", description: "", manufacturer: "", model: "", cost: 0, condition: "excellent", notes: "", for_sale: false });
+      setEditId(null);
+      alert("Gun part saved successfully!");
+    } catch (e) {
+      alert("Save failed: " + e.message);
     }
-    setNewPart({ category: "", description: "", manufacturer: "", model: "", cost: 0, condition: "excellent", notes: "", for_sale: false });
-    setEditId(null);
-    const { data: d } = await supabase.from("gun_parts").select("*");
-    setData({ ...data, gunparts: d || [] });
   };
 
   const del = async (id) => {
@@ -711,17 +741,27 @@ function Attachments({ data, setData, userId }) {
   const table = useTable(attachments, ["description", "manufacturer", "assigned_to"], "type");
 
   const save = async () => {
-    const rec = { ...newAddon, user_id: userId };
-    if (editId) {
-      await supabase.from("accessories").update(rec).eq("id", editId);
-    } else {
-      rec.id = uid();
-      await supabase.from("accessories").insert([rec]);
+    try {
+      const rec = { ...newAddon, user_id: userId };
+      if (editId && editId !== "new") {
+        const { error } = await supabase.from("accessories").update(rec).eq("id", editId);
+        if (error) throw error;
+      } else {
+        rec.id = uid();
+        const { error } = await supabase.from("accessories").insert([rec]);
+        if (error) throw error;
+      }
+      
+      const { data: d, error: fetchError } = await supabase.from("accessories").select("*");
+      if (fetchError) throw fetchError;
+      
+      setData(prevData => ({ ...prevData, accessories: d || [] }));
+      setNewAddon({ type: "", description: "", manufacturer: "", model: "", cost: 0, assigned_to: "", notes: "" });
+      setEditId(null);
+      alert("Attachment saved successfully!");
+    } catch (e) {
+      alert("Save failed: " + e.message);
     }
-    setNewAddon({ type: "", description: "", manufacturer: "", model: "", cost: 0, assigned_to: "", notes: "" });
-    setEditId(null);
-    const { data: d } = await supabase.from("accessories").select("*");
-    setData({ ...data, accessories: d || [] });
   };
 
   const del = async (id) => {
@@ -776,17 +816,27 @@ function Ammunition({ data, setData, userId }) {
   const table = useTable(ammo, ["caliber", "storage_location"], "caliber");
 
   const save = async () => {
-    const rec = { ...newAmmo, user_id: userId };
-    if (editId) {
-      await supabase.from("ammo").update(rec).eq("id", editId);
-    } else {
-      rec.id = uid();
-      await supabase.from("ammo").insert([rec]);
+    try {
+      const rec = { ...newAmmo, user_id: userId };
+      if (editId && editId !== "new") {
+        const { error } = await supabase.from("ammo").update(rec).eq("id", editId);
+        if (error) throw error;
+      } else {
+        rec.id = uid();
+        const { error } = await supabase.from("ammo").insert([rec]);
+        if (error) throw error;
+      }
+      
+      const { data: d, error: fetchError } = await supabase.from("ammo").select("*");
+      if (fetchError) throw fetchError;
+      
+      setData(prevData => ({ ...prevData, ammo: d || [] }));
+      setNewAmmo({ caliber: "", type: "", quantity: 0, storage_location: "", cost_per_round: 0, notes: "" });
+      setEditId(null);
+      alert("Ammunition saved successfully!");
+    } catch (e) {
+      alert("Save failed: " + e.message);
     }
-    setNewAmmo({ caliber: "", type: "", quantity: 0, storage_location: "", cost_per_round: 0, notes: "" });
-    setEditId(null);
-    const { data: d } = await supabase.from("ammo").select("*");
-    setData({ ...data, ammo: d || [] });
   };
 
   const del = async (id) => {
@@ -841,17 +891,27 @@ function SuppliesNeeded({ data, setData, userId }) {
   const table = useTable(supplies, ["category", "name"], "category");
 
   const save = async () => {
-    const rec = { ...newSupply, user_id: userId };
-    if (editId) {
-      await supabase.from("supplies").update(rec).eq("id", editId);
-    } else {
-      rec.id = uid();
-      await supabase.from("supplies").insert([rec]);
+    try {
+      const rec = { ...newSupply, user_id: userId };
+      if (editId && editId !== "new") {
+        const { error } = await supabase.from("supplies").update(rec).eq("id", editId);
+        if (error) throw error;
+      } else {
+        rec.id = uid();
+        const { error } = await supabase.from("supplies").insert([rec]);
+        if (error) throw error;
+      }
+      
+      const { data: d, error: fetchError } = await supabase.from("supplies").select("*");
+      if (fetchError) throw fetchError;
+      
+      setData(prevData => ({ ...prevData, supplies: d || [] }));
+      setNewSupply({ category: "", name: "", purchased: false, est_cost: 0, notes: "" });
+      setEditId(null);
+      alert("Supply saved successfully!");
+    } catch (e) {
+      alert("Save failed: " + e.message);
     }
-    setNewSupply({ category: "", name: "", purchased: false, est_cost: 0, notes: "" });
-    setEditId(null);
-    const { data: d } = await supabase.from("supplies").select("*");
-    setData({ ...data, supplies: d || [] });
   };
 
   const del = async (id) => {
