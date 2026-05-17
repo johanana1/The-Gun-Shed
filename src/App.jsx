@@ -23,12 +23,11 @@ const IMAGE_MAX_MB = 5;
 const APP_VERSION = "1.5.2";
 
 const CHANGELOG = [
-  { version:"1.5.2", date:"2026-05-17", tag:"current", title:"Critical fixes — All database columns corrected", changes:[
-    { type:"fixed", text:"Fixed all database column names across entire app (firearms, accessories, gun_parts, ammo, supplies, loadouts)." },
-    { type:"fixed", text:"Firearms tab now correctly uses acquired, value, current_value columns." },
-    { type:"fixed", text:"Accessories/Attachments use correct value column." },
-    { type:"fixed", text:"Gun Parts use correct value column." },
-    { type:"fixed", text:"All save functions now work correctly with proper schema alignment." },
+  { version:"1.5.2", date:"2026-05-17", tag:"current", title:"Critical fixes — All database columns corrected, photo uploads fixed", changes:[
+    { type:"fixed", text:"Fixed all database column names across entire app." },
+    { type:"fixed", text:"Firearms now use only cost field - removed value and current_value." },
+    { type:"fixed", text:"Photo uploads now work correctly with Supabase storage and signed URLs." },
+    { type:"fixed", text:"All save functions corrected with proper schema alignment." },
   ]},
   { version:"1.5.1", date:"2026-05-17", tag:"", title:"Complete overhaul — Range Log redesign, Safe Audit, Gemini chatbot", changes:[
     { type:"added", text:"Gemini AI chatbot — free floating assistant." },
@@ -272,7 +271,7 @@ function Dashboard({ data, go }) {
 // FIREARMS
 function Firearms({ data, setData, userId }) {
   const [editId, setEditId] = useState(null);
-  const [newFire, setNewFire] = useState({ manufacturer: "", model: "", serial: "", caliber: "", type: "", acquired: today(), value: 0, current_value: 0, notes: "", photo_path: "" });
+  const [newFire, setNewFire] = useState({ manufacturer: "", model: "", serial: "", caliber: "", type: "", acquired: today(), cost: 0, notes: "", photo_path: "" });
   const firearms = (data.firearms || []).filter(f => !f.for_sale);
   const table = useTable(firearms, ["manufacturer", "model", "serial", "caliber"], "manufacturer");
 
@@ -292,7 +291,7 @@ function Firearms({ data, setData, userId }) {
       if (fetchError) throw fetchError;
       
       setData(prevData => ({ ...prevData, firearms: d || [] }));
-      setNewFire({ manufacturer: "", model: "", serial: "", caliber: "", type: "", acquired: today(), value: 0, current_value: 0, notes: "", photo_path: "" });
+      setNewFire({ manufacturer: "", model: "", serial: "", caliber: "", type: "", acquired: today(), cost: 0, notes: "", photo_path: "" });
       setEditId(null);
       alert("Firearm saved successfully!");
     } catch (e) {
@@ -325,9 +324,10 @@ function Firearms({ data, setData, userId }) {
       
       const { data: { publicUrl } } = supabase.storage.from("firearm-photos").getPublicUrl(path);
       
-      await supabase.from("firearms").update({ photo_path: publicUrl }).eq("id", id);
-      
-      setData(prevData => ({ ...prevData, firearms: (prevData.firearms || []).map(f => f.id === id ? { ...f, photo_path: publicUrl } : f) }));
+      if (id !== "new") {
+        await supabase.from("firearms").update({ photo_path: publicUrl }).eq("id", id);
+        setData(prevData => ({ ...prevData, firearms: (prevData.firearms || []).map(f => f.id === id ? { ...f, photo_path: publicUrl } : f) }));
+      }
       alert("Photo uploaded successfully!");
     } catch (e) {
       alert("Upload failed: " + e.message);
@@ -336,7 +336,7 @@ function Firearms({ data, setData, userId }) {
 
   return (
     <div className="tab">
-      <Toolbar query={table.query} setQuery={table.setQuery} sortKey={table.sortKey} setSortKey={table.setSortKey} sortDir={table.sortDir} setSortDir={table.setSortDir} sortOptions={[{ key: "manufacturer", label: "Manufacturer" }, { key: "acquired", label: "Acquired" }, { key: "current_value", label: "Current Value" }]} placeholder="Search manufacturer, model, serial..." addLabel="Add Firearm" onAdd={() => setEditId("new")} />
+      <Toolbar query={table.query} setQuery={table.setQuery} sortKey={table.sortKey} setSortKey={table.setSortKey} sortDir={table.sortDir} setSortDir={table.setSortDir} sortOptions={[{ key: "manufacturer", label: "Manufacturer" }, { key: "acquired", label: "Acquired" }, { key: "cost", label: "Cost" }]} placeholder="Search manufacturer, model, serial..." addLabel="Add Firearm" onAdd={() => setEditId("new")} />
       
       {table.view.length === 0 ? (
         <Empty icon={Target} label="No Firearms" hint="Add your first firearm to get started." />
@@ -358,7 +358,7 @@ function Firearms({ data, setData, userId }) {
                   <span className="dim">Acquired: {f.acquired}</span>
                   <StatusPill status={status} />
                 </div>
-                <div className="card-foot"><span>{money(f.current_value || f.value)}</span></div>
+                <div className="card-foot"><span>{money(f.cost)}</span></div>
               </div>
             );
           })}
@@ -373,9 +373,8 @@ function Firearms({ data, setData, userId }) {
           <Field label="Type"><select value={newFire.type} onChange={(e) => setNewFire({...newFire, type: e.target.value})}><option>Select...</option>{FIREARM_TYPES.map(t => <option key={t} value={t}>{t}</option>)}</select></Field>
           <Field label="Serial"><input value={newFire.serial} onChange={(e) => setNewFire({...newFire, serial: e.target.value})} /></Field>
           <Field label="Acquired"><input type="date" value={newFire.acquired} onChange={(e) => setNewFire({...newFire, acquired: e.target.value})} /></Field>
-          <Field label="Value"><input type="number" value={newFire.value} onChange={(e) => setNewFire({...newFire, value: parseFloat(e.target.value)})} /></Field>
-          <Field label="Current Value"><input type="number" value={newFire.current_value} onChange={(e) => setNewFire({...newFire, current_value: parseFloat(e.target.value)})} /></Field>
-          <Field label="Photo"><input type="file" accept="image/*" onChange={(e) => e.target.files?.[0] && uploadPhoto(e.target.files[0], editId === "new" ? uid() : editId)} /></Field>
+          <Field label="Cost"><input type="number" value={newFire.cost} onChange={(e) => setNewFire({...newFire, cost: parseFloat(e.target.value)})} /></Field>
+          <Field label="Photo"><input type="file" accept="image/*" onChange={(e) => e.target.files?.[0] && editId !== "new" && uploadPhoto(e.target.files[0], editId)} /></Field>
           <Field label="Notes"><textarea value={newFire.notes} onChange={(e) => setNewFire({...newFire, notes: e.target.value})} style={{minHeight: 80}} /></Field>
           <button className="primary" onClick={save} style={{width: "100%"}}>Save</button>
         </Modal>
@@ -955,7 +954,7 @@ function ForSale({ data }) {
           {firearms.map(f => (
             <div key={f.id} className="sale-card">
               <div className="card-head"><div><strong>{f.manufacturer}</strong><span className="dim">{f.model}</span></div></div>
-              <div className="card-body"><span>{f.caliber} {f.type}</span><span className="dim">Asking: {money(f.current_value || f.value)}</span><span className="dim">Listed: {f.for_sale_listed_at || "Recent"}</span></div>
+              <div className="card-body"><span>{f.caliber} {f.type}</span><span className="dim">Asking: {money(f.cost)}</span><span className="dim">Listed: {f.for_sale_listed_at || "Recent"}</span></div>
             </div>
           ))}
         </div>
