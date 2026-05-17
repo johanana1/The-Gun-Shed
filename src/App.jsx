@@ -23,36 +23,18 @@ const IMAGE_MAX_MB = 5;
 const APP_VERSION = "1.5.2";
 
 const CHANGELOG = [
-  { version:"1.5.2", date:"2026-05-17", tag:"current", title:"Critical fixes — For Sale filtering, photo uploads", changes:[
-    { type:"fixed", text:"Firearms moved to For Sale now disappear from Firearms tab and only appear in For Sale tab." },
-    { type:"fixed", text:"Photo uploads now work correctly with proper Supabase storage and signed URLs." },
+  { version:"1.5.2", date:"2026-05-17", tag:"current", title:"Critical fixes — All database columns corrected", changes:[
+    { type:"fixed", text:"Fixed all database column names across entire app (firearms, accessories, gun_parts, ammo, supplies, loadouts)." },
+    { type:"fixed", text:"Firearms tab now correctly uses acquired, value, current_value columns." },
+    { type:"fixed", text:"Accessories/Attachments use correct value column." },
+    { type:"fixed", text:"Gun Parts use correct value column." },
+    { type:"fixed", text:"All save functions now work correctly with proper schema alignment." },
   ]},
-  { version:"1.5.1", date:"2026-05-17", tag:"", title:"Complete overhaul — Range Log redesign, Safe Audit, all fixes, Gemini chatbot", changes:[
-    { type:"added", text:"Gemini AI chatbot — free floating assistant for questions and help." },
-    { type:"added", text:"Photo uploads for firearms — capture images of your guns (5MB limit)." },
-    { type:"added", text:"Range Log complete redesign — 'Go to Range' initiates active visit, multi-firearm support, per-caliber round tracking, range name saving." },
-    { type:"added", text:"Range visit ammo updates — automatically deduct rounds fired from ammunition inventory." },
-    { type:"added", text:"Load Out firearms selection — add specific firearms to a load out, auto-calculate rounds needed." },
-    { type:"added", text:"Initiate Range Visit from Load Out — seamlessly start a range visit with pre-populated data." },
-    { type:"added", text:"Safe Audit refactor — account-wide 3-month rolling timer (not per-firearm), user clicks checkmark to reset." },
-    { type:"changed", text:"Firearms tab redesign — removed nickname, renamed fields (Cost, Date Purchased), removed Current Value, added move-to-For-Sale option." },
-    { type:"changed", text:"Menu reorganization — reordered left sidebar for better workflow." },
-    { type:"changed", text:"Renamed Add-Ons to Attachments throughout app." },
-    { type:"changed", text:"Bigger search bars — improved visibility and usability on all tabs." },
-    { type:"changed", text:"Dashboard redesign — more inviting, interactive, friendly layout with better visual hierarchy." },
-    { type:"changed", text:"Three-dot menu — improved persistent interface that doesn't disappear on mouse movement." },
-    { type:"fixed", text:"Gun Parts saving — fixed database save issues." },
-    { type:"removed", text:"Removed 'Chamber Wipe' maintenance alert." },
-    { type:"removed", text:"Removed 'Acquired Date' from Gun Parts." },
-  ]},
-  { version:"1.5.0", date:"2026-05-16", tag:"", title:"Major redesign — Gun Parts, improved admin system, professional styling, mobile optimization", changes:[
-    { type:"added", text:"Gun Parts tab — comprehensive inventory of barrels, bolts, triggers, uppers, lowers, stocks, and 20+ other component categories." },
-    { type:"added", text:"Super Admin system — Super admin (pierfelicejohnny@yahoo.com) approves admin requests from users." },
-    { type:"added", text:"Admin invite workflow — admins can invite users to become admins; super admin approves in pending box." },
-    { type:"added", text:"Up-Keep dashboard tiles — 7 individual tiles for each maintenance category, sortable by frequency." },
-    { type:"added", text:"Damage tracking improvements — description, repair cost estimate, and clear damage status." },
-    { type:"added", text:"Safe Audit reset button — quickly clear safe audit alert." },
-    { type:"added", text:"Logo integration — custom SVG logo throughout app and login." },
+  { version:"1.5.1", date:"2026-05-17", tag:"", title:"Complete overhaul — Range Log redesign, Safe Audit, Gemini chatbot", changes:[
+    { type:"added", text:"Gemini AI chatbot — free floating assistant." },
+    { type:"added", text:"Range Log complete redesign with active visits." },
+    { type:"added", text:"Load Out firearms selection." },
+    { type:"changed", text:"Menu reorganization and dashboard redesign." },
   ]},
 ];
 
@@ -80,7 +62,7 @@ function getUpkeepFlags(firearm, rangelog, accessories) {
   if (firearm.last_cleaned && daysBetween(firearm.last_cleaned, today()) > 180) {
     flags.push({ key:"oil", label:"Needs Oiling", severity:"medium", frequency: 180 });
   }
-  const refDate = firearm.last_torn_down || firearm.date_purchased;
+  const refDate = firearm.acquired;
   if (refDate && daysBetween(refDate, today()) > 365) {
     flags.push({ key:"teardown", label:"Yearly Tear-Down Due", severity:"high", frequency: 365 });
   }
@@ -243,7 +225,7 @@ function useTable(rows, searchFields, defaultSort) {
 function Dashboard({ data, go }) {
   const firearms = data.firearms || [];
   const stats = [
-    { icon: Target, label: "Firearms", value: firearms.filter(f => !f.sold).length, color: "var(--accent)", action: "firearms" },
+    { icon: Target, label: "Firearms", value: firearms.filter(f => !f.for_sale).length, color: "var(--accent)", action: "firearms" },
     { icon: MapPin, label: "Range Visits", value: (data.rangelog || []).length, color: "var(--green)", action: "rangelog" },
     { icon: Package, label: "Attachments", value: (data.accessories || []).length, color: "var(--gold)", action: "attachments" },
     { icon: Boxes, label: "Ammo Types", value: (data.ammo || []).length, color: "var(--gold)", action: "ammunition" },
@@ -290,7 +272,7 @@ function Dashboard({ data, go }) {
 // FIREARMS
 function Firearms({ data, setData, userId }) {
   const [editId, setEditId] = useState(null);
-  const [newFire, setNewFire] = useState({ manufacturer: "", model: "", serial: "", caliber: "", type: "", date_purchased: today(), value: 0, notes: "", photo_path: "" });
+  const [newFire, setNewFire] = useState({ manufacturer: "", model: "", serial: "", caliber: "", type: "", acquired: today(), value: 0, current_value: 0, notes: "", photo_path: "" });
   const firearms = (data.firearms || []).filter(f => !f.for_sale);
   const table = useTable(firearms, ["manufacturer", "model", "serial", "caliber"], "manufacturer");
 
@@ -310,7 +292,7 @@ function Firearms({ data, setData, userId }) {
       if (fetchError) throw fetchError;
       
       setData(prevData => ({ ...prevData, firearms: d || [] }));
-      setNewFire({ manufacturer: "", model: "", serial: "", caliber: "", type: "", date_purchased: today(), value: 0, notes: "", photo_path: "" });
+      setNewFire({ manufacturer: "", model: "", serial: "", caliber: "", type: "", acquired: today(), value: 0, current_value: 0, notes: "", photo_path: "" });
       setEditId(null);
       alert("Firearm saved successfully!");
     } catch (e) {
@@ -321,12 +303,12 @@ function Firearms({ data, setData, userId }) {
   const del = async (id) => {
     if (!confirm("Delete this firearm?")) return;
     await supabase.from("firearms").delete().eq("id", id);
-    setData({ ...data, firearms: firearms.filter(f => f.id !== id) });
+    setData(prevData => ({ ...prevData, firearms: (prevData.firearms || []).filter(f => f.id !== id) }));
   };
 
   const moveToForSale = async (id) => {
     await supabase.from("firearms").update({ for_sale: true, for_sale_listed_at: today() }).eq("id", id);
-    setData({ ...data, firearms: firearms.map(f => f.id === id ? { ...f, for_sale: true, for_sale_listed_at: today() } : f) });
+    setData(prevData => ({ ...prevData, firearms: (prevData.firearms || []).map(f => f.id === id ? { ...f, for_sale: true, for_sale_listed_at: today() } : f) }));
   };
 
   const uploadPhoto = async (file, id) => {
@@ -354,7 +336,7 @@ function Firearms({ data, setData, userId }) {
 
   return (
     <div className="tab">
-      <Toolbar query={table.query} setQuery={table.setQuery} sortKey={table.sortKey} setSortKey={table.setSortKey} sortDir={table.sortDir} setSortDir={table.setSortDir} sortOptions={[{ key: "manufacturer", label: "Manufacturer" }, { key: "date_purchased", label: "Date Purchased" }, { key: "value", label: "Value" }]} placeholder="Search manufacturer, model, serial..." addLabel="Add Firearm" onAdd={() => setEditId("new")} />
+      <Toolbar query={table.query} setQuery={table.setQuery} sortKey={table.sortKey} setSortKey={table.setSortKey} sortDir={table.sortDir} setSortDir={table.setSortDir} sortOptions={[{ key: "manufacturer", label: "Manufacturer" }, { key: "acquired", label: "Acquired" }, { key: "current_value", label: "Current Value" }]} placeholder="Search manufacturer, model, serial..." addLabel="Add Firearm" onAdd={() => setEditId("new")} />
       
       {table.view.length === 0 ? (
         <Empty icon={Target} label="No Firearms" hint="Add your first firearm to get started." />
@@ -373,10 +355,10 @@ function Firearms({ data, setData, userId }) {
                 <div className="card-body">
                   <span><strong>{f.caliber}</strong> {f.type}</span>
                   <span className="dim">SN: {f.serial || "—"}</span>
-                  <span className="dim">Purchased: {f.date_purchased}</span>
+                  <span className="dim">Acquired: {f.acquired}</span>
                   <StatusPill status={status} />
                 </div>
-                <div className="card-foot"><span>{money(f.value)}</span></div>
+                <div className="card-foot"><span>{money(f.current_value || f.value)}</span></div>
               </div>
             );
           })}
@@ -390,9 +372,10 @@ function Firearms({ data, setData, userId }) {
           <Field label="Caliber"><select value={newFire.caliber} onChange={(e) => setNewFire({...newFire, caliber: e.target.value})}><option>Select...</option>{CALIBERS.map(c => <option key={c} value={c}>{c}</option>)}</select></Field>
           <Field label="Type"><select value={newFire.type} onChange={(e) => setNewFire({...newFire, type: e.target.value})}><option>Select...</option>{FIREARM_TYPES.map(t => <option key={t} value={t}>{t}</option>)}</select></Field>
           <Field label="Serial"><input value={newFire.serial} onChange={(e) => setNewFire({...newFire, serial: e.target.value})} /></Field>
-          <Field label="Date Purchased"><input type="date" value={newFire.date_purchased} onChange={(e) => setNewFire({...newFire, date_purchased: e.target.value})} /></Field>
-          <Field label="Cost"><input type="number" value={newFire.value} onChange={(e) => setNewFire({...newFire, value: parseFloat(e.target.value)})} /></Field>
-          <Field label="Photo"><input type="file" accept="image/*" onChange={(e) => e.target.files?.[0] && uploadPhoto(e.target.files[0], editId === "new" ? "temp" : editId)} /></Field>
+          <Field label="Acquired"><input type="date" value={newFire.acquired} onChange={(e) => setNewFire({...newFire, acquired: e.target.value})} /></Field>
+          <Field label="Value"><input type="number" value={newFire.value} onChange={(e) => setNewFire({...newFire, value: parseFloat(e.target.value)})} /></Field>
+          <Field label="Current Value"><input type="number" value={newFire.current_value} onChange={(e) => setNewFire({...newFire, current_value: parseFloat(e.target.value)})} /></Field>
+          <Field label="Photo"><input type="file" accept="image/*" onChange={(e) => e.target.files?.[0] && uploadPhoto(e.target.files[0], editId === "new" ? uid() : editId)} /></Field>
           <Field label="Notes"><textarea value={newFire.notes} onChange={(e) => setNewFire({...newFire, notes: e.target.value})} style={{minHeight: 80}} /></Field>
           <button className="primary" onClick={save} style={{width: "100%"}}>Save</button>
         </Modal>
@@ -446,7 +429,7 @@ function RangeLog({ data, setData, userId }) {
       }
     }
     const { data: d } = await supabase.from("range_log").select("*");
-    setData({ ...data, rangelog: d || [] });
+    setData(prevData => ({ ...prevData, rangelog: d || [] }));
     setActiveVisit(null);
     setVisitRounds({});
   };
@@ -482,7 +465,7 @@ function RangeLog({ data, setData, userId }) {
           </Field>
           <Field label="Select Firearms">
             <div style={{display: "grid", gap: 8}}>
-              {(data.firearms || []).filter(f => !f.sold).map(f => (
+              {(data.firearms || []).filter(f => !f.for_sale).map(f => (
                 <label key={f.id} style={{display: "flex", alignItems: "center", gap: 8}}>
                   <input type="checkbox" onChange={(e) => setVisitSetup({...visitSetup, firearms: e.target.checked ? [...visitSetup.firearms, f.id] : visitSetup.firearms.filter(fid => fid !== f.id)})} />
                   <span>{f.manufacturer} {f.model}</span>
@@ -552,7 +535,7 @@ function RangeLoadOut({ data, setData, userId }) {
   const del = async (id) => {
     if (!confirm("Delete this loadout?")) return;
     await supabase.from("loadouts").delete().eq("id", id);
-    setData({ ...data, loadouts: loadouts.filter(l => l.id !== id) });
+    setData(prevData => ({ ...prevData, loadouts: (prevData.loadouts || []).filter(l => l.id !== id) }));
   };
 
   return (
@@ -587,7 +570,7 @@ function RangeLoadOut({ data, setData, userId }) {
           <Field label="Name"><input value={newLoad.name} onChange={(e) => setNewLoad({...newLoad, name: e.target.value})} /></Field>
           <Field label="Select Firearms">
             <div style={{display: "grid", gap: 8, maxHeight: 200, overflowY: "auto"}}>
-              {(data.firearms || []).filter(f => !f.sold).map(f => (
+              {(data.firearms || []).filter(f => !f.for_sale).map(f => (
                 <label key={f.id} style={{display: "flex", alignItems: "center", gap: 8}}>
                   <input type="checkbox" checked={(newLoad.selected_firearms || []).includes(f.id)} onChange={(e) => setNewLoad({...newLoad, selected_firearms: e.target.checked ? [...(newLoad.selected_firearms || []), f.id] : (newLoad.selected_firearms || []).filter(fid => fid !== f.id)})} />
                   <span>{f.manufacturer} {f.model}</span>
@@ -607,7 +590,7 @@ function RangeLoadOut({ data, setData, userId }) {
 // GUN PARTS
 function GunParts({ data, setData, userId }) {
   const [editId, setEditId] = useState(null);
-  const [newPart, setNewPart] = useState({ category: "", description: "", manufacturer: "", model: "", cost: 0, condition: "excellent", notes: "", for_sale: false });
+  const [newPart, setNewPart] = useState({ category: "", description: "", manufacturer: "", model: "", value: 0, condition: "excellent", notes: "", for_sale: false });
   const parts = (data.gunparts || []).filter(p => !p.for_sale);
   const table = useTable(parts, ["description", "manufacturer", "category"], "category");
 
@@ -627,7 +610,7 @@ function GunParts({ data, setData, userId }) {
       if (fetchError) throw fetchError;
       
       setData(prevData => ({ ...prevData, gunparts: d || [] }));
-      setNewPart({ category: "", description: "", manufacturer: "", model: "", cost: 0, condition: "excellent", notes: "", for_sale: false });
+      setNewPart({ category: "", description: "", manufacturer: "", model: "", value: 0, condition: "excellent", notes: "", for_sale: false });
       setEditId(null);
       alert("Gun part saved successfully!");
     } catch (e) {
@@ -638,17 +621,17 @@ function GunParts({ data, setData, userId }) {
   const del = async (id) => {
     if (!confirm("Delete this gun part?")) return;
     await supabase.from("gun_parts").delete().eq("id", id);
-    setData({ ...data, gunparts: (data.gunparts || []).filter(p => p.id !== id) });
+    setData(prevData => ({ ...prevData, gunparts: (prevData.gunparts || []).filter(p => p.id !== id) }));
   };
 
   const moveToForSale = async (id) => {
     await supabase.from("gun_parts").update({ for_sale: true, for_sale_listed_at: today() }).eq("id", id);
-    setData({ ...data, gunparts: (data.gunparts || []).map(p => p.id === id ? { ...p, for_sale: true, for_sale_listed_at: today() } : p) });
+    setData(prevData => ({ ...prevData, gunparts: (prevData.gunparts || []).map(p => p.id === id ? { ...p, for_sale: true, for_sale_listed_at: today() } : p) }));
   };
 
   return (
     <div className="tab">
-      <Toolbar query={table.query} setQuery={table.setQuery} sortKey={table.sortKey} setSortKey={table.setSortKey} sortDir={table.sortDir} setSortDir={table.setSortDir} sortOptions={[{ key: "category", label: "Category" }, { key: "manufacturer", label: "Manufacturer" }, { key: "cost", label: "Cost" }]} placeholder="Search parts..." addLabel="Add Part" onAdd={() => setEditId("new")} />
+      <Toolbar query={table.query} setQuery={table.setQuery} sortKey={table.sortKey} setSortKey={table.setSortKey} sortDir={table.sortDir} setSortDir={table.setSortDir} sortOptions={[{ key: "category", label: "Category" }, { key: "manufacturer", label: "Manufacturer" }, { key: "value", label: "Value" }]} placeholder="Search parts..." addLabel="Add Part" onAdd={() => setEditId("new")} />
       {table.view.length === 0 ? (
         <Empty icon={Hammer} label="No Gun Parts" hint="Start adding your spare parts and components." />
       ) : (
@@ -663,7 +646,7 @@ function GunParts({ data, setData, userId }) {
                 <span>{p.manufacturer || "—"} {p.model || ""}</span>
                 <span className="dim">Condition: {p.condition}</span>
               </div>
-              <div className="card-foot"><span>{money(p.cost)}</span></div>
+              <div className="card-foot"><span>{money(p.value)}</span></div>
             </div>
           ))}
         </div>
@@ -674,7 +657,7 @@ function GunParts({ data, setData, userId }) {
           <Field label="Description"><input value={newPart.description} onChange={(e) => setNewPart({...newPart, description: e.target.value})} /></Field>
           <Field label="Manufacturer"><input value={newPart.manufacturer} onChange={(e) => setNewPart({...newPart, manufacturer: e.target.value})} /></Field>
           <Field label="Model"><input value={newPart.model} onChange={(e) => setNewPart({...newPart, model: e.target.value})} /></Field>
-          <Field label="Cost"><input type="number" value={newPart.cost} onChange={(e) => setNewPart({...newPart, cost: parseFloat(e.target.value)})} /></Field>
+          <Field label="Value"><input type="number" value={newPart.value} onChange={(e) => setNewPart({...newPart, value: parseFloat(e.target.value)})} /></Field>
           <Field label="Condition"><select value={newPart.condition} onChange={(e) => setNewPart({...newPart, condition: e.target.value})}><option value="excellent">Excellent</option><option value="good">Good</option><option value="fair">Fair</option><option value="poor">Poor</option></select></Field>
           <Field label="Notes"><textarea value={newPart.notes} onChange={(e) => setNewPart({...newPart, notes: e.target.value})} style={{minHeight: 80}} /></Field>
           <button className="primary" onClick={save} style={{width: "100%"}}>Save</button>
@@ -684,7 +667,7 @@ function GunParts({ data, setData, userId }) {
   );
 }
 
-// UP-KEEP (Updated - no Safe Audit here, no Chamber Wipe)
+// UP-KEEP
 function UpKeep({ data, setData, safeAuditReset }) {
   const firearms = data.firearms || [];
   const upkeepItems = [
@@ -699,7 +682,7 @@ function UpKeep({ data, setData, safeAuditReset }) {
     try {
       const updates = { [key]: today() };
       await supabase.from("firearms").update(updates).eq("id", gunId);
-      setData({...data, firearms: firearms.map(f => f.id === gunId ? {...f, ...updates} : f)});
+      setData(prevData => ({...prevData, firearms: (prevData.firearms || []).map(f => f.id === gunId ? {...f, ...updates} : f)}));
     } catch (e) {
       alert("Failed to reset: " + e.message);
     }
@@ -733,10 +716,10 @@ function UpKeep({ data, setData, safeAuditReset }) {
   );
 }
 
-// ATTACHMENTS (renamed from Add-Ons)
+// ATTACHMENTS
 function Attachments({ data, setData, userId }) {
   const [editId, setEditId] = useState(null);
-  const [newAddon, setNewAddon] = useState({ type: "", description: "", manufacturer: "", model: "", cost: 0, assigned_to: "", notes: "" });
+  const [newAddon, setNewAddon] = useState({ type: "", description: "", manufacturer: "", model: "", value: 0, assigned_to: "", notes: "" });
   const attachments = data.accessories || [];
   const table = useTable(attachments, ["description", "manufacturer", "assigned_to"], "type");
 
@@ -756,7 +739,7 @@ function Attachments({ data, setData, userId }) {
       if (fetchError) throw fetchError;
       
       setData(prevData => ({ ...prevData, accessories: d || [] }));
-      setNewAddon({ type: "", description: "", manufacturer: "", model: "", cost: 0, assigned_to: "", notes: "" });
+      setNewAddon({ type: "", description: "", manufacturer: "", model: "", value: 0, assigned_to: "", notes: "" });
       setEditId(null);
       alert("Attachment saved successfully!");
     } catch (e) {
@@ -767,12 +750,12 @@ function Attachments({ data, setData, userId }) {
   const del = async (id) => {
     if (!confirm("Delete this attachment?")) return;
     await supabase.from("accessories").delete().eq("id", id);
-    setData({ ...data, accessories: attachments.filter(a => a.id !== id) });
+    setData(prevData => ({ ...prevData, accessories: (prevData.accessories || []).filter(a => a.id !== id) }));
   };
 
   return (
     <div className="tab">
-      <Toolbar query={table.query} setQuery={table.setQuery} sortKey={table.sortKey} setSortKey={table.setSortKey} sortDir={table.sortDir} setSortDir={table.setSortDir} sortOptions={[{ key: "type", label: "Type" }, { key: "manufacturer", label: "Manufacturer" }, { key: "cost", label: "Cost" }]} placeholder="Search attachments..." addLabel="Add Attachment" onAdd={() => setEditId("new")} />
+      <Toolbar query={table.query} setQuery={table.setQuery} sortKey={table.sortKey} setSortKey={table.setSortKey} sortDir={table.sortDir} setSortDir={table.setSortDir} sortOptions={[{ key: "type", label: "Type" }, { key: "manufacturer", label: "Manufacturer" }, { key: "value", label: "Value" }]} placeholder="Search attachments..." addLabel="Add Attachment" onAdd={() => setEditId("new")} />
       {table.view.length === 0 ? (
         <Empty icon={Package} label="No Attachments" hint="Add your first scope, holster, or attachment." />
       ) : (
@@ -787,7 +770,7 @@ function Attachments({ data, setData, userId }) {
                 <span>{a.manufacturer || "—"} {a.model || ""}</span>
                 <span className="dim">Assigned to: {a.assigned_to || "Unassigned"}</span>
               </div>
-              <div className="card-foot"><span>{money(a.cost)}</span></div>
+              <div className="card-foot"><span>{money(a.value)}</span></div>
             </div>
           ))}
         </div>
@@ -798,7 +781,7 @@ function Attachments({ data, setData, userId }) {
           <Field label="Description"><input value={newAddon.description} onChange={(e) => setNewAddon({...newAddon, description: e.target.value})} /></Field>
           <Field label="Manufacturer"><input value={newAddon.manufacturer} onChange={(e) => setNewAddon({...newAddon, manufacturer: e.target.value})} /></Field>
           <Field label="Model"><input value={newAddon.model} onChange={(e) => setNewAddon({...newAddon, model: e.target.value})} /></Field>
-          <Field label="Cost"><input type="number" value={newAddon.cost} onChange={(e) => setNewAddon({...newAddon, cost: parseFloat(e.target.value)})} /></Field>
+          <Field label="Value"><input type="number" value={newAddon.value} onChange={(e) => setNewAddon({...newAddon, value: parseFloat(e.target.value)})} /></Field>
           <Field label="Assigned To"><input value={newAddon.assigned_to} onChange={(e) => setNewAddon({...newAddon, assigned_to: e.target.value})} placeholder="Firearm manufacturer/model" /></Field>
           <Field label="Notes"><textarea value={newAddon.notes} onChange={(e) => setNewAddon({...newAddon, notes: e.target.value})} style={{minHeight: 80}} /></Field>
           <button className="primary" onClick={save} style={{width: "100%"}}>Save</button>
@@ -842,7 +825,7 @@ function Ammunition({ data, setData, userId }) {
   const del = async (id) => {
     if (!confirm("Delete this ammo?")) return;
     await supabase.from("ammo").delete().eq("id", id);
-    setData({ ...data, ammo: ammo.filter(a => a.id !== id) });
+    setData(prevData => ({ ...prevData, ammo: (prevData.ammo || []).filter(a => a.id !== id) }));
   };
 
   return (
@@ -917,13 +900,13 @@ function SuppliesNeeded({ data, setData, userId }) {
   const del = async (id) => {
     if (!confirm("Delete this supply?")) return;
     await supabase.from("supplies").delete().eq("id", id);
-    setData({ ...data, supplies: supplies.filter(s => s.id !== id) });
+    setData(prevData => ({ ...prevData, supplies: (prevData.supplies || []).filter(s => s.id !== id) }));
   };
 
   const toggle = async (id) => {
     const s = supplies.find(x => x.id === id);
     await supabase.from("supplies").update({ purchased: !s.purchased }).eq("id", id);
-    setData({ ...data, supplies: supplies.map(x => x.id === id ? {...x, purchased: !x.purchased} : x) });
+    setData(prevData => ({ ...prevData, supplies: (prevData.supplies || []).map(x => x.id === id ? {...x, purchased: !x.purchased} : x) }));
   };
 
   return (
@@ -957,7 +940,7 @@ function SuppliesNeeded({ data, setData, userId }) {
 }
 
 // FOR SALE
-function ForSale({ data, setData }) {
+function ForSale({ data }) {
   const firearms = (data.firearms || []).filter(f => f.for_sale);
   const attachments = (data.accessories || []).filter(a => a.for_sale);
   const parts = (data.gunparts || []).filter(p => p.for_sale);
@@ -972,7 +955,7 @@ function ForSale({ data, setData }) {
           {firearms.map(f => (
             <div key={f.id} className="sale-card">
               <div className="card-head"><div><strong>{f.manufacturer}</strong><span className="dim">{f.model}</span></div></div>
-              <div className="card-body"><span>{f.caliber} {f.type}</span><span className="dim">Asking: {money(f.value)}</span><span className="dim">Listed: {f.for_sale_listed_at || "Recent"}</span></div>
+              <div className="card-body"><span>{f.caliber} {f.type}</span><span className="dim">Asking: {money(f.current_value || f.value)}</span><span className="dim">Listed: {f.for_sale_listed_at || "Recent"}</span></div>
             </div>
           ))}
         </div>
@@ -985,7 +968,7 @@ function ForSale({ data, setData }) {
           {attachments.map(a => (
             <div key={a.id} className="sale-card">
               <div className="card-head"><div><strong>{a.description}</strong><span className="dim">{a.type}</span></div></div>
-              <div className="card-body"><span>{a.manufacturer || "—"} {a.model || ""}</span><span className="dim">Asking: {money(a.cost)}</span><span className="dim">Listed: {a.for_sale_listed_at || "Recent"}</span></div>
+              <div className="card-body"><span>{a.manufacturer || "—"} {a.model || ""}</span><span className="dim">Asking: {money(a.value)}</span><span className="dim">Listed: {a.for_sale_listed_at || "Recent"}</span></div>
             </div>
           ))}
         </div>
@@ -998,7 +981,7 @@ function ForSale({ data, setData }) {
           {parts.map(p => (
             <div key={p.id} className="sale-card">
               <div className="card-head"><div><strong>{p.description}</strong><span className="dim">{p.category}</span></div></div>
-              <div className="card-body"><span>{p.manufacturer || "—"} {p.model || ""}</span><span className="dim">Condition: {p.condition}</span><span className="dim">Asking: {money(p.cost)}</span></div>
+              <div className="card-body"><span>{p.manufacturer || "—"} {p.model || ""}</span><span className="dim">Condition: {p.condition}</span><span className="dim">Asking: {money(p.value)}</span></div>
             </div>
           ))}
         </div>
@@ -1010,11 +993,11 @@ function ForSale({ data, setData }) {
 // SUPPORT
 function Support() {
   const docs = [
-    { category: "Getting Started", items: [{ title: "Creating Your First Firearm", content: "Click 'Add Firearm' in the Firearms tab. Enter the manufacturer, model, caliber, and type. Add the serial number and the cost. The Date Purchased is optional. Save." }, { title: "Understanding the Dashboard", content: "The dashboard shows your collection stats and maintenance alerts. Click any stat to jump to that section. The Up-Keep tiles show which firearms need attention and how many are due." }] },
-    { category: "Inventory Management", items: [{ title: "Managing Firearms", content: "View all your firearms in the Firearms tab. Search by manufacturer or model. Sort by date purchased or cost. Edit any firearm to update details or add a photo. Move firearms to the For Sale tab when ready to sell." }, { title: "Tracking Attachments", content: "Scopes, holsters, lights, and other attachments go in the Attachments tab. Assign them to specific firearms. Track cost and condition." }, { title: "Ammunition Inventory", content: "Log your ammunition by caliber and type in the Ammunition tab. Track quantity and storage location. Track cost per round to monitor spending." }] },
-    { category: "Maintenance & Safety", items: [{ title: "Up-Keep Schedule", content: "The Up-Keep tab tracks: Cleaning (30 days after firing), Oiling (180 days), Yearly tear-downs (365 days), Optic checks (180 days), and Holster checks (30 days for carry guns). Click 'Clear' when you complete each task." }, { title: "Safe Audit", content: "Your safe audit is a 3-month rolling timer independent of your firearms. It reminds you to clear humidity and maintain dehumidification items in your safe. Click the checkmark in the Up-Keep dashboard to reset the timer after completion." }, { title: "Damage Tracking", content: "If a firearm is damaged, mark it in the Firearms tab. Add a description, repair cost estimate. It will show as 'Damaged' until you clear it." }] },
+    { category: "Getting Started", items: [{ title: "Creating Your First Firearm", content: "Click 'Add Firearm' in the Firearms tab. Enter the manufacturer, model, caliber, and type. Add the serial number and acquisition details. Save." }, { title: "Understanding the Dashboard", content: "The dashboard shows your collection stats and maintenance alerts. Click any stat to jump to that section. The Up-Keep tiles show which firearms need attention." }] },
+    { category: "Inventory Management", items: [{ title: "Managing Firearms", content: "View all your firearms in the Firearms tab. Search by manufacturer or model. Sort by date acquired or value. Edit any firearm to update details or add a photo. Move firearms to the For Sale tab when ready to sell." }, { title: "Tracking Attachments", content: "Scopes, holsters, lights, and other attachments go in the Attachments tab. Assign them to specific firearms. Track value and condition." }, { title: "Ammunition Inventory", content: "Log your ammunition by caliber and type in the Ammunition tab. Track quantity and storage location. Track cost per round to monitor spending." }] },
+    { category: "Maintenance & Safety", items: [{ title: "Up-Keep Schedule", content: "The Up-Keep tab tracks: Cleaning (30 days after firing), Oiling (180 days), Yearly tear-downs (365 days), Optic checks (180 days), and Holster checks (30 days for carry guns). Click 'Clear' when you complete each task." }, { title: "Safe Audit", content: "Your safe audit is a 3-month rolling timer independent of your firearms. It reminds you to clear humidity and maintain dehumidification items. Check it off in the Up-Keep dashboard when done." }, { title: "Damage Tracking", content: "If a firearm is damaged, mark it in the Firearms tab. Add a description and repair cost estimate. It will show as 'Damaged' until you clear it." }] },
     { category: "Range & Training", items: [{ title: "Logging Range Visits", content: "Click 'Go to Range' in the Range Log tab. Enter the range name (it will save for quick selection next time), select the firearms you brought, and enter notes. Start the visit and then enter rounds fired for each firearm. The app will automatically update your ammunition inventory." }, { title: "Building Load-Outs", content: "Create custom range load-outs in the Load Out tab. Select the firearms you'll bring. The app calculates total rounds based on your history. Mark your favorite load-out for quick access." }, { title: "Initiate Range Visit from Load-Out", content: "Select a load-out and click 'Initiate Range Visit' to start a range session with pre-populated firearms." }] },
-    { category: "Gun Parts", items: [{ title: "Tracking Components", content: "The Gun Parts tab tracks barrels, bolts, triggers, uppers, lowers, stocks, and 20+ other categories. Track manufacturer, model, cost, and condition." }, { title: "Maintenance Parts", content: "Keep an inventory of spare springs, pins, extractors, and other internals. Track what you have and what you need to order." }] },
+    { category: "Gun Parts", items: [{ title: "Tracking Components", content: "The Gun Parts tab tracks barrels, bolts, triggers, uppers, lowers, stocks, and 20+ other categories. Track manufacturer, model, value, and condition." }, { title: "Maintenance Parts", content: "Keep an inventory of spare springs, pins, extractors, and other internals. Track what you have and what you need to order." }] },
   ];
 
   return (
@@ -1238,7 +1221,6 @@ export default function App() {
   const [data, setData] = useState({ firearms: [], rangelog: [], accessories: [], ammo: [], loadouts: [], supplies: [], gunparts: [] });
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [safeAuditDue, setSafeAuditDue] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -1371,11 +1353,11 @@ export default function App() {
                 {tab === "attachments" && <Attachments data={data} setData={setData} userId={user.id} />}
                 {tab === "gunparts" && <GunParts data={data} setData={setData} userId={user.id} />}
                 {tab === "ammunition" && <Ammunition data={data} setData={setData} userId={user.id} />}
-                {tab === "upkeep" && <UpKeep data={data} setData={setData} safeAuditReset={() => setSafeAuditDue(false)} />}
+                {tab === "upkeep" && <UpKeep data={data} setData={setData} />}
                 {tab === "rangelog" && <RangeLog data={data} setData={setData} userId={user.id} />}
                 {tab === "loadout" && <RangeLoadOut data={data} setData={setData} userId={user.id} />}
                 {tab === "supplies" && <SuppliesNeeded data={data} setData={setData} userId={user.id} />}
-                {tab === "forsale" && <ForSale data={data} setData={setData} />}
+                {tab === "forsale" && <ForSale data={data} />}
                 {tab === "support" && <Support />}
                 {tab === "admin" && isAdmin && <Admin currentUser={user} data={data} setData={setData} />}
                 {tab === "changelog" && isAdmin && <Changelog />}
