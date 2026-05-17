@@ -833,8 +833,13 @@ export default function App() {
   }, []);
 
   const loadProfile = async (userId) => {
-    const { data } = await supabase.from("profiles").select("*").eq("id", userId).single().catch(() => ({ data: null }));
-    setProfile(data);
+    try {
+      const { data } = await supabase.from("profiles").select("*").eq("id", userId).single();
+      setProfile(data);
+    } catch (e) {
+      console.error("Profile load error:", e);
+      setProfile(null);
+    }
   };
 
   const loadData = async () => {
