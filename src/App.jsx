@@ -25,7 +25,7 @@ const DEFAULT_RANGE_ROUNDS = { Pistol: 100, Revolver: 50, Rifle: 60, Shotgun: 25
 const IMAGE_TYPES = "JPEG, PNG, WebP, GIF";
 const IMAGE_MAX_MB = 3;
 const TARGET_PHOTO_MAX_MB = 2.5;
-const APP_VERSION = "1.4.0";
+const APP_VERSION = "1.5.0";
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 const today = () => new Date().toISOString().slice(0, 10);
