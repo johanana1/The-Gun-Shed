@@ -290,7 +290,7 @@ function Dashboard({ data, go }) {
 // FIREARMS
 function Firearms({ data, setData, userId }) {
   const [editId, setEditId] = useState(null);
-  const [newFire, setNewFire] = useState({ manufacturer: "", model: "", serial: "", caliber: "", type: "", date_purchased: today(), cost: 0, notes: "", photo_path: "" });
+  const [newFire, setNewFire] = useState({ manufacturer: "", model: "", serial: "", caliber: "", type: "", date_purchased: today(), value: 0, notes: "", photo_path: "" });
   const firearms = (data.firearms || []).filter(f => !f.for_sale);
   const table = useTable(firearms, ["manufacturer", "model", "serial", "caliber"], "manufacturer");
 
@@ -310,7 +310,7 @@ function Firearms({ data, setData, userId }) {
       if (fetchError) throw fetchError;
       
       setData(prevData => ({ ...prevData, firearms: d || [] }));
-      setNewFire({ manufacturer: "", model: "", serial: "", caliber: "", type: "", date_purchased: today(), cost: 0, notes: "", photo_path: "" });
+      setNewFire({ manufacturer: "", model: "", serial: "", caliber: "", type: "", date_purchased: today(), value: 0, notes: "", photo_path: "" });
       setEditId(null);
       alert("Firearm saved successfully!");
     } catch (e) {
@@ -354,7 +354,7 @@ function Firearms({ data, setData, userId }) {
 
   return (
     <div className="tab">
-      <Toolbar query={table.query} setQuery={table.setQuery} sortKey={table.sortKey} setSortKey={table.setSortKey} sortDir={table.sortDir} setSortDir={table.setSortDir} sortOptions={[{ key: "manufacturer", label: "Manufacturer" }, { key: "date_purchased", label: "Date Purchased" }, { key: "cost", label: "Cost" }]} placeholder="Search manufacturer, model, serial..." addLabel="Add Firearm" onAdd={() => setEditId("new")} />
+      <Toolbar query={table.query} setQuery={table.setQuery} sortKey={table.sortKey} setSortKey={table.setSortKey} sortDir={table.sortDir} setSortDir={table.setSortDir} sortOptions={[{ key: "manufacturer", label: "Manufacturer" }, { key: "date_purchased", label: "Date Purchased" }, { key: "value", label: "Value" }]} placeholder="Search manufacturer, model, serial..." addLabel="Add Firearm" onAdd={() => setEditId("new")} />
       
       {table.view.length === 0 ? (
         <Empty icon={Target} label="No Firearms" hint="Add your first firearm to get started." />
@@ -376,7 +376,7 @@ function Firearms({ data, setData, userId }) {
                   <span className="dim">Purchased: {f.date_purchased}</span>
                   <StatusPill status={status} />
                 </div>
-                <div className="card-foot"><span>{money(f.cost)}</span></div>
+                <div className="card-foot"><span>{money(f.value)}</span></div>
               </div>
             );
           })}
@@ -391,7 +391,7 @@ function Firearms({ data, setData, userId }) {
           <Field label="Type"><select value={newFire.type} onChange={(e) => setNewFire({...newFire, type: e.target.value})}><option>Select...</option>{FIREARM_TYPES.map(t => <option key={t} value={t}>{t}</option>)}</select></Field>
           <Field label="Serial"><input value={newFire.serial} onChange={(e) => setNewFire({...newFire, serial: e.target.value})} /></Field>
           <Field label="Date Purchased"><input type="date" value={newFire.date_purchased} onChange={(e) => setNewFire({...newFire, date_purchased: e.target.value})} /></Field>
-          <Field label="Cost"><input type="number" value={newFire.cost} onChange={(e) => setNewFire({...newFire, cost: parseFloat(e.target.value)})} /></Field>
+          <Field label="Cost"><input type="number" value={newFire.value} onChange={(e) => setNewFire({...newFire, value: parseFloat(e.target.value)})} /></Field>
           <Field label="Photo"><input type="file" accept="image/*" onChange={(e) => e.target.files?.[0] && uploadPhoto(e.target.files[0], editId === "new" ? "temp" : editId)} /></Field>
           <Field label="Notes"><textarea value={newFire.notes} onChange={(e) => setNewFire({...newFire, notes: e.target.value})} style={{minHeight: 80}} /></Field>
           <button className="primary" onClick={save} style={{width: "100%"}}>Save</button>
@@ -972,7 +972,7 @@ function ForSale({ data, setData }) {
           {firearms.map(f => (
             <div key={f.id} className="sale-card">
               <div className="card-head"><div><strong>{f.manufacturer}</strong><span className="dim">{f.model}</span></div></div>
-              <div className="card-body"><span>{f.caliber} {f.type}</span><span className="dim">Asking: {money(f.cost)}</span><span className="dim">Listed: {f.for_sale_listed_at || "Recent"}</span></div>
+              <div className="card-body"><span>{f.caliber} {f.type}</span><span className="dim">Asking: {money(f.value)}</span><span className="dim">Listed: {f.for_sale_listed_at || "Recent"}</span></div>
             </div>
           ))}
         </div>
