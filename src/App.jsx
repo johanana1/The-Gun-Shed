@@ -589,13 +589,21 @@ function Attachments({ data, setData, userId }) {
     } catch (e) { showError(e.message, "Attachments > Delete"); }
   };
 
+  const moveToSale = async (id) => {
+    try {
+      const { error } = await supabase.from("accessories").update({ for_sale: true, for_sale_listed_at: today() }).eq("id", id);
+      if (error) throw error;
+      setData(prev => ({ ...prev, accessories: (prev.accessories || []).map(a => a.id === id ? { ...a, for_sale: true, for_sale_listed_at: today() } : a) }));
+    } catch (e) { showError(e.message, "Attachments > Move to Sale"); }
+  };
+
   return (
     <div className="tab">
       <Toolbar query={table.query} setQuery={table.setQuery} sortKey={table.sortKey} setSortKey={table.setSortKey} sortDir={table.sortDir} setSortDir={table.setSortDir} sortOptions={[{ key: "type", label: "Type" }, { key: "brand", label: "Brand" }, { key: "value", label: "Value" }]} placeholder="Search attachments..." addLabel="Add Attachment" onAdd={() => { setForm({ ...EMPTY }); setEditId("new"); }} />
       {table.view.length === 0 ? <Empty icon={Package} label="No Attachments" hint="Add your first attachment." /> :
         <div className="card-grid">{table.view.map(a => (
           <div key={a.id} className="addon-card">
-            <div className="card-head"><div><strong>{a.name}</strong><span className="dim">{a.type}</span></div><PersistentMenu items={[{ label: "Edit", onClick: () => { setForm(a); setEditId(a.id); } }, { label: "Delete", onClick: () => del(a.id), danger: true, icon: Trash2 }]} /></div>
+            <div className="card-head"><div><strong>{a.name}</strong><span className="dim">{a.type}</span></div><PersistentMenu items={[{ label: "Edit", onClick: () => { setForm(a); setEditId(a.id); } }, { label: "Move to For Sale", onClick: () => moveToSale(a.id), icon: Tag }, { label: "Delete", onClick: () => del(a.id), danger: true, icon: Trash2 }]} /></div>
             <div className="card-body"><span>{a.brand || "—"}</span><span className="dim">Qty: {a.quantity || 0}</span><span className="dim">Assigned: {a.assigned_to || "—"}</span></div>
             <div className="card-foot"><span>{money(a.value)}</span></div>
           </div>
@@ -939,27 +947,129 @@ function SuppliesNeeded({ data, setData, userId }) {
 /* ══════════════════════════════════════════════════════
    FOR SALE
    ══════════════════════════════════════════════════════ */
-function ForSale({ data }) {
+function ForSale({ data, setData, userId }) {
+  const { showError } = useError();
+  const [detailItem, setDetailItem] = useState(null);
+  const [itemType, setItemType] = useState(null); // "firearm" or "accessory"
   const firearms = (data.firearms || []).filter(f => f.for_sale);
   const accessories = (data.accessories || []).filter(a => a.for_sale);
+
+  const moveBackToCategory = async (id, type) => {
+    try {
+      const table = type === "firearm" ? "firearms" : "accessories";
+      const { error } = await supabase.from(table).update({ for_sale: false, for_sale_listed_at: null }).eq("id", id);
+      if (error) throw error;
+      setData(prev => ({
+        ...prev,
+        [type === "firearm" ? "firearms" : "accessories"]: (prev[type === "firearm" ? "firearms" : "accessories"] || []).map(item =>
+          item.id === id ? { ...item, for_sale: false, for_sale_listed_at: null } : item
+        )
+      }));
+      setDetailItem(null);
+      setItemType(null);
+    } catch (e) { showError(e.message, `ForSale > Move Back`); }
+  };
+
+  const deleteItem = async (id, type) => {
+    if (!confirm("Delete this item?")) return;
+    try {
+      const table = type === "firearm" ? "firearms" : "accessories";
+      const { error } = await supabase.from(table).delete().eq("id", id);
+      if (error) throw error;
+      setData(prev => ({
+        ...prev,
+        [type === "firearm" ? "firearms" : "accessories"]: (prev[type === "firearm" ? "firearms" : "accessories"] || []).filter(item => item.id !== id)
+      }));
+      setDetailItem(null);
+      setItemType(null);
+    } catch (e) { showError(e.message, `ForSale > Delete`); }
+  };
+
   return (
     <div className="tab">
       <h3 style={{ marginBottom: 16, fontFamily: "'Oswald',sans-serif", fontSize: 16 }}>Firearms for Sale</h3>
       {firearms.length === 0 ? <Empty icon={Target} label="None Listed" hint="Move from Firearms tab." /> :
         <div className="card-grid">{firearms.map(f => (
-          <div key={f.id} className="sale-card">
-            <div className="card-head"><div><strong>{f.nickname || f.manufacturer}</strong><span className="dim">{f.model}</span></div></div>
-            <div className="card-body"><span>{f.caliber} {f.type}</span><span className="dim">Asking: {money(f.current_value || f.value)}</span></div>
-          </div>
+          <button
+            key={f.id}
+            onClick={() => { setDetailItem(f); setItemType("firearm"); }}
+            style={{
+              background: "var(--panel)", border: "1px solid var(--line)", borderRadius: "var(--radius)", padding: 14,
+              textAlign: "left", cursor: "pointer", transition: "all .15s", display: "grid", gridTemplateColumns: "1fr auto", gap: 10, alignItems: "start"
+            }}
+            onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.borderColor = "var(--line2)"; }}
+            onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.borderColor = "var(--line)"; }}
+          >
+            <div className="sale-card" style={{ border: "none", padding: 0 }}>
+              <div className="card-head"><div><strong>{f.nickname || f.manufacturer}</strong><span className="dim">{f.model}</span></div></div>
+              <div className="card-body"><span>{f.caliber} {f.type}</span><span className="dim">Asking: {money(f.current_value || f.value)}</span></div>
+            </div>
+            <div style={{ color: "var(--faint)", fontSize: 12 }}>Click to view</div>
+          </button>
         ))}</div>}
       <h3 style={{ marginTop: 24, marginBottom: 16, fontFamily: "'Oswald',sans-serif", fontSize: 16 }}>Attachments for Sale</h3>
       {accessories.length === 0 ? <Empty icon={Package} label="None Listed" hint="Move from Attachments tab." /> :
         <div className="card-grid">{accessories.map(a => (
-          <div key={a.id} className="sale-card">
-            <div className="card-head"><div><strong>{a.name}</strong><span className="dim">{a.type}</span></div></div>
-            <div className="card-body"><span>{a.brand || "—"}</span><span className="dim">Asking: {money(a.value)}</span></div>
-          </div>
+          <button
+            key={a.id}
+            onClick={() => { setDetailItem(a); setItemType("accessory"); }}
+            style={{
+              background: "var(--panel)", border: "1px solid var(--line)", borderRadius: "var(--radius)", padding: 14,
+              textAlign: "left", cursor: "pointer", transition: "all .15s", display: "grid", gridTemplateColumns: "1fr auto", gap: 10, alignItems: "start"
+            }}
+            onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.borderColor = "var(--line2)"; }}
+            onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.borderColor = "var(--line)"; }}
+          >
+            <div className="sale-card" style={{ border: "none", padding: 0 }}>
+              <div className="card-head"><div><strong>{a.name}</strong><span className="dim">{a.type}</span></div></div>
+              <div className="card-body"><span>{a.brand || "—"}</span><span className="dim">Asking: {money(a.value)}</span></div>
+            </div>
+            <div style={{ color: "var(--faint)", fontSize: 12 }}>Click to view</div>
+          </button>
         ))}</div>}
+
+      {/* Details Modal */}
+      {detailItem && itemType === "firearm" && (
+        <Modal title={`${detailItem.nickname || detailItem.manufacturer} — For Sale`} onClose={() => { setDetailItem(null); setItemType(null); }} wide>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 12, marginBottom: 20, padding: 12, background: "var(--panel2)", borderRadius: 8, border: "1px solid var(--line)" }}>
+            <div><span style={{ fontSize: 10, color: "var(--faint)", textTransform: "uppercase", letterSpacing: ".5px" }}>Manufacturer</span><div style={{ fontSize: 13, fontWeight: 600, marginTop: 4 }}>{detailItem.manufacturer}</div></div>
+            <div><span style={{ fontSize: 10, color: "var(--faint)", textTransform: "uppercase", letterSpacing: ".5px" }}>Model</span><div style={{ fontSize: 13, fontWeight: 600, marginTop: 4 }}>{detailItem.model}</div></div>
+            <div><span style={{ fontSize: 10, color: "var(--faint)", textTransform: "uppercase", letterSpacing: ".5px" }}>Caliber</span><div style={{ fontSize: 13, fontWeight: 600, marginTop: 4 }}>{detailItem.caliber}</div></div>
+            <div><span style={{ fontSize: 10, color: "var(--faint)", textTransform: "uppercase", letterSpacing: ".5px" }}>Type</span><div style={{ fontSize: 13, fontWeight: 600, marginTop: 4 }}>{detailItem.type}</div></div>
+            <div><span style={{ fontSize: 10, color: "var(--faint)", textTransform: "uppercase", letterSpacing: ".5px" }}>Serial</span><div style={{ fontSize: 13, fontWeight: 600, marginTop: 4 }}>{detailItem.serial || "—"}</div></div>
+            <div><span style={{ fontSize: 10, color: "var(--faint)", textTransform: "uppercase", letterSpacing: ".5px" }}>Asking Price</span><div style={{ fontSize: 13, fontWeight: 600, color: "var(--green)", marginTop: 4 }}>{money(detailItem.current_value || detailItem.value)}</div></div>
+          </div>
+          {detailItem.notes && <div style={{ marginBottom: 16 }}><div style={{ fontSize: 11, fontWeight: 700, color: "var(--faint)", textTransform: "uppercase", letterSpacing: ".5px", marginBottom: 6 }}>Notes</div><div style={{ fontSize: 12, color: "var(--text)", padding: 10, background: "var(--panel)", borderRadius: 8, border: "1px solid var(--line)" }}>{detailItem.notes}</div></div>}
+          <div style={{ marginTop: 24, paddingTop: 16, borderTop: "1px solid var(--line)" }}>
+            <h4 style={{ fontSize: 13, fontWeight: 700, marginBottom: 12 }}>Actions</h4>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button className="ghost" onClick={() => moveBackToCategory(detailItem.id, "firearm")} style={{ flex: 1 }}>Move Back to Firearms</button>
+              <button className="primary danger" onClick={() => deleteItem(detailItem.id, "firearm")} style={{ flex: 1 }}><Trash2 size={14} /> Delete</button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Details Modal — Accessories */}
+      {detailItem && itemType === "accessory" && (
+        <Modal title={`${detailItem.name} — For Sale`} onClose={() => { setDetailItem(null); setItemType(null); }} wide>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 12, marginBottom: 20, padding: 12, background: "var(--panel2)", borderRadius: 8, border: "1px solid var(--line)" }}>
+            <div><span style={{ fontSize: 10, color: "var(--faint)", textTransform: "uppercase", letterSpacing: ".5px" }}>Type</span><div style={{ fontSize: 13, fontWeight: 600, marginTop: 4 }}>{detailItem.type}</div></div>
+            <div><span style={{ fontSize: 10, color: "var(--faint)", textTransform: "uppercase", letterSpacing: ".5px" }}>Brand</span><div style={{ fontSize: 13, fontWeight: 600, marginTop: 4 }}>{detailItem.brand || "—"}</div></div>
+            <div><span style={{ fontSize: 10, color: "var(--faint)", textTransform: "uppercase", letterSpacing: ".5px" }}>Quantity</span><div style={{ fontSize: 13, fontWeight: 600, marginTop: 4 }}>{detailItem.quantity || 0}</div></div>
+            <div><span style={{ fontSize: 10, color: "var(--faint)", textTransform: "uppercase", letterSpacing: ".5px" }}>Assigned To</span><div style={{ fontSize: 13, fontWeight: 600, marginTop: 4 }}>{detailItem.assigned_to || "—"}</div></div>
+            <div><span style={{ fontSize: 10, color: "var(--faint)", textTransform: "uppercase", letterSpacing: ".5px" }}>Asking Price</span><div style={{ fontSize: 13, fontWeight: 600, color: "var(--green)", marginTop: 4 }}>{money(detailItem.value)}</div></div>
+          </div>
+          {detailItem.notes && <div style={{ marginBottom: 16 }}><div style={{ fontSize: 11, fontWeight: 700, color: "var(--faint)", textTransform: "uppercase", letterSpacing: ".5px", marginBottom: 6 }}>Notes</div><div style={{ fontSize: 12, color: "var(--text)", padding: 10, background: "var(--panel)", borderRadius: 8, border: "1px solid var(--line)" }}>{detailItem.notes}</div></div>}
+          <div style={{ marginTop: 24, paddingTop: 16, borderTop: "1px solid var(--line)" }}>
+            <h4 style={{ fontSize: 13, fontWeight: 700, marginBottom: 12 }}>Actions</h4>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button className="ghost" onClick={() => moveBackToCategory(detailItem.id, "accessory")} style={{ flex: 1 }}>Move Back to Attachments</button>
+              <button className="primary danger" onClick={() => deleteItem(detailItem.id, "accessory")} style={{ flex: 1 }}><Trash2 size={14} /> Delete</button>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }
@@ -1543,7 +1653,7 @@ export default function App() {
               {tab === "rangelog" && <RangeLog data={data} setData={setData} userId={user.id} />}
               {tab === "loadout" && <LoadOut data={data} setData={setData} userId={user.id} />}
               {tab === "supplies" && <SuppliesNeeded data={data} setData={setData} userId={user.id} />}
-              {tab === "forsale" && <ForSale data={data} />}
+              {tab === "forsale" && <ForSale data={data} setData={setData} userId={user.id} />}
               {tab === "support" && <Support />}
               {tab === "tickets" && isAdmin && <Tickets userId={user.id} userEmail={user.email} isSuperAdmin={isSuperAdmin} />}
               {tab === "admin" && isAdmin && <Admin currentUser={user} />}
@@ -1654,6 +1764,8 @@ button.primary:hover { background: var(--accent-d); }
 button.primary:disabled { opacity: .45; cursor: not-allowed; }
 button.primary.big { width: 100%; justify-content: center; padding: 12px; font-size: 14px; margin-top: 4px; }
 button.primary.small { padding: 6px 10px; font-size: 12px; }
+button.primary.danger { background: var(--danger); }
+button.primary.danger:hover { background: #a83d3a; }
 button.ghost { display: inline-flex; align-items: center; gap: 6px; background: var(--panel); border: 1px solid var(--line); color: var(--dim); border-radius: 8px; padding: 9px 13px; cursor: pointer; font-family: inherit; font-size: 12px; transition: all .15s; }
 button.ghost:hover { color: var(--text); border-color: var(--line2); }
 button.ghost.small { padding: 5px 8px; font-size: 11px; }
