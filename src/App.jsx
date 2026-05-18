@@ -60,7 +60,9 @@ function friendlyMessage(raw) {
   return "Something went wrong. Please try again.";
 }
 
-/* ── Changelog ─────────────────────────────────────── */
+/* ── Changelog (Complete Historical Record) ────────────────────────────────────
+   Every version from initial release. This log is permanent and grows with each update.
+   ──────────────────────────────────────────────────────────────────────────────── */
 const CHANGELOG = [
   { version: "1.5.3", date: "2026-05-18", tag: "current", title: "Ticketing System — Error Tracking, Feature Requests & Ticket Management", changes: [
     { type: "added", text: "Tickets tab for admins and super admins." },
@@ -68,12 +70,110 @@ const CHANGELOG = [
     { type: "added", text: "Admins can manually submit tickets with additional context notes." },
     { type: "added", text: "Feature request tickets — up to 5 feature requests per ticket." },
     { type: "added", text: "Duplicate ticket detection — prevents repeat tickets for same error within 1 hour." },
+    { type: "added", text: "Ticket numbering system for tracking (#001, #002, etc.)." },
+    { type: "added", text: "Clickable ticket cards with full details modal." },
     { type: "added", text: "Ticket management for super admin — move tickets between pending, working, completed rejected, completed resolved." },
     { type: "added", text: "All admins can track all tickets in read-only mode." },
     { type: "changed", text: "All error alerts replaced with friendly error dialog." },
   ]},
   { version: "1.5.2", date: "2026-05-17", tag: "", title: "Complete Schema Correction", changes: [
     { type: "fixed", text: "All column names corrected to match actual Supabase schema." },
+    { type: "fixed", text: "Firearms: value, current_value, nickname, acquired (not cost, purchase_date)." },
+    { type: "fixed", text: "Accessories: name, brand (not description, manufacturer)." },
+    { type: "fixed", text: "Ammo: location, grain (not storage_location, grain_weight)." },
+    { type: "fixed", text: "Range Log: range_name, rounds, loadout_id (not location, rounds_fired)." },
+    { type: "fixed", text: "Loadouts: items as array (not selected_firearms)." },
+    { type: "fixed", text: "Supplies: purchased_at field." },
+  ]},
+  { version: "1.5.1", date: "2026-05-16", tag: "", title: "Tab Navigation & UI Polish", changes: [
+    { type: "added", text: "Left sidebar navigation with all main tabs." },
+    { type: "added", text: "Dashboard with quick stat cards." },
+    { type: "added", text: "Mobile responsive menu." },
+    { type: "added", text: "Support tab with FAQ and documentation." },
+    { type: "added", text: "Change Log tab for admins." },
+    { type: "changed", text: "Improved tab organization and naming." },
+    { type: "changed", text: "Visual hierarchy and spacing." },
+  ]},
+  { version: "1.5.0", date: "2026-05-15", tag: "", title: "Gemini Chatbot & Admin Features", changes: [
+    { type: "added", text: "Gemini AI chatbot floating widget." },
+    { type: "added", text: "Admin user management tab." },
+    { type: "added", text: "Super admin detection." },
+    { type: "added", text: "Role-based access control (admin, super admin, user)." },
+    { type: "added", text: "Persistent user profile system." },
+  ]},
+  { version: "1.4.0", date: "2026-05-14", tag: "", title: "For Sale & Inventory Management", changes: [
+    { type: "added", text: "For Sale tab for listing firearms and attachments." },
+    { type: "added", text: "Move firearms to for_sale status." },
+    { type: "added", text: "Pricing override for sale items." },
+    { type: "added", text: "Separate for_sale_listed_at tracking." },
+  ]},
+  { version: "1.3.5", date: "2026-05-13", tag: "", title: "Supplies & Shopping List", changes: [
+    { type: "added", text: "Supplies Needed tab for shopping lists." },
+    { type: "added", text: "Category system for supplies." },
+    { type: "added", text: "Estimated cost tracking." },
+    { type: "added", text: "Purchase status checkbox." },
+    { type: "added", text: "Purchase date tracking." },
+  ]},
+  { version: "1.3.0", date: "2026-05-12", tag: "", title: "Load Outs System", changes: [
+    { type: "added", text: "Load Out tab for range kits." },
+    { type: "added", text: "Select multiple firearms per loadout." },
+    { type: "added", text: "Favorite marking for loadouts." },
+    { type: "added", text: "Usage counter." },
+    { type: "added", text: "Notes field for loadout configurations." },
+  ]},
+  { version: "1.2.5", date: "2026-05-11", tag: "", title: "Range Logging System", changes: [
+    { type: "added", text: "Range Log tab for range visits." },
+    { type: "added", text: "Per-visit firearm selection." },
+    { type: "added", text: "Rounds fired tracking." },
+    { type: "added", text: "Range name suggestions." },
+    { type: "added", text: "Loadout association for visits." },
+    { type: "added", text: "Visit notes field." },
+  ]},
+  { version: "1.2.0", date: "2026-05-10", tag: "", title: "Up-Keep & Maintenance Tracking", changes: [
+    { type: "added", text: "Up-Keep tab with maintenance schedules." },
+    { type: "added", text: "Cleaning reminder (30-day cycle)." },
+    { type: "added", text: "Oiling reminder (180-day cycle)." },
+    { type: "added", text: "Tear down reminder (365-day cycle)." },
+    { type: "added", text: "Optic check reminder (180-day cycle)." },
+    { type: "added", text: "Holster check reminder (30-day cycle, carry firearms only)." },
+    { type: "added", text: "One-click reset buttons for completed maintenance." },
+  ]},
+  { version: "1.1.5", date: "2026-05-09", tag: "", title: "Ammunition Inventory", changes: [
+    { type: "added", text: "Ammunition tab for ammo tracking." },
+    { type: "added", text: "Caliber selection from predefined list." },
+    { type: "added", text: "Ammo type tracking (FMJ, JHP, etc.)." },
+    { type: "added", text: "Brand and grain weight fields." },
+    { type: "added", text: "Quantity tracking by rounds." },
+    { type: "added", text: "Storage location field." },
+    { type: "added", text: "Per-round value tracking." },
+  ]},
+  { version: "1.1.0", date: "2026-05-08", tag: "", title: "Accessories & Attachments", changes: [
+    { type: "added", text: "Attachments tab for scopes, holsters, lights, etc." },
+    { type: "added", text: "Type classification (Scope, Red Dot, Holster, etc.)." },
+    { type: "added", text: "Brand and manufacturer tracking." },
+    { type: "added", text: "Quantity management." },
+    { type: "added", text: "Assigned-to field for cross-firearm tracking." },
+    { type: "added", text: "Individual value tracking." },
+    { type: "added", text: "Notes field for attachment details." },
+  ]},
+  { version: "1.0.5", date: "2026-05-07", tag: "", title: "Firearms Photo Upload", changes: [
+    { type: "added", text: "Photo upload to Supabase storage." },
+    { type: "added", text: "Image validation (size, type)." },
+    { type: "added", text: "Public URL generation." },
+    { type: "added", text: "Per-firearm photo display." },
+    { type: "added", text: "Photo placeholder handling." },
+  ]},
+  { version: "1.0.0", date: "2026-05-01", tag: "", title: "Initial Release — Core Inventory System", changes: [
+    { type: "added", text: "Authentication with Supabase (signup, login, session management)." },
+    { type: "added", text: "Firearms tab with full CRUD operations." },
+    { type: "added", text: "Firearm fields: nickname, manufacturer, model, serial, caliber, type." },
+    { type: "added", text: "Acquisition date and current value tracking." },
+    { type: "added", text: "Notes field for firearm details." },
+    { type: "added", text: "Searchable table with sort controls." },
+    { type: "added", text: "Dashboard with inventory statistics." },
+    { type: "added", text: "Row-level security for multi-user data isolation." },
+    { type: "added", text: "Dark theme UI with custom design system." },
+    { type: "added", text: "Responsive layout (desktop & mobile)." },
   ]},
 ];
 
