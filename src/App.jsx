@@ -1567,29 +1567,20 @@ Provide numbered steps only, no preamble.`;
           )}
 
           {/* Testing Claim */}
-          {(detailTicket.status === "pending_testing" || detailTicket.status === "working" || detailTicket.status === "pending") && (
+          {detailTicket.status === "pending_testing" && (
             <div style={{ marginBottom: 16, padding: 12, background: "var(--panel2)", borderRadius: 8, border: "1px solid var(--line)" }}>
               {!detailTicket.test_claimed_by ? (
                 <>
                   <p style={{ fontSize: 12, marginBottom: 8 }}>This ticket is not claimed yet.</p>
-                  {(isSuperAdmin || detailTicket.status !== "pending") && (
-                    <button className="primary" onClick={() => claimForTesting(detailTicket)} style={{ width: "100%" }}>Claim for Testing</button>
-                  )}
-                  {!isSuperAdmin && detailTicket.status === "pending" && (
-                    <p style={{ fontSize: 11, color: "var(--danger)" }}>Only super admins can claim pending tickets.</p>
-                  )}
+                  <button className="primary" onClick={() => claimForTesting(detailTicket)} style={{ width: "100%" }}>Claim for Testing</button>
                 </>
               ) : detailTicket.test_claimed_by === userId ? (
                 <>
                   <p style={{ fontSize: 12, color: "var(--green)", marginBottom: 8, fontWeight: 600 }}>✓ You are testing this ticket</p>
                   <div style={{ display: "flex", gap: 8 }}>
                     <button className="ghost" onClick={() => unclaimTesting(detailTicket)} style={{ flex: 1 }}>Unclaim</button>
-                    {detailTicket.status === "pending_testing" && (
-                      <>
-                        <button className="primary" onClick={() => { setMoveStatus("completed_resolved"); setMoveNotes(""); }} style={{ flex: 1, background: moveStatus === "completed_resolved" ? "var(--green)" : undefined }}>Passed ✓</button>
-                        <button className="primary danger" onClick={() => { setMoveStatus("needs_investigation"); setMoveNotes(""); }} style={{ flex: 1, background: moveStatus === "needs_investigation" ? "var(--danger)" : undefined }}>Failed ✗</button>
-                      </>
-                    )}
+                    <button style={{ flex: 1, padding: "8px 12px", borderRadius: "var(--radius)", border: "1px solid var(--line)", background: moveStatus === "completed_resolved" ? "var(--green)" : "var(--panel)", color: moveStatus === "completed_resolved" ? "#fff" : "var(--text)", fontWeight: 600, cursor: "pointer" }} onClick={() => { setMoveStatus("completed_resolved"); setMoveNotes(""); }}>Passed ✓</button>
+                    <button style={{ flex: 1, padding: "8px 12px", borderRadius: "var(--radius)", border: "1px solid var(--line)", background: moveStatus === "needs_investigation" ? "var(--danger)" : "var(--panel)", color: moveStatus === "needs_investigation" ? "#fff" : "var(--text)", fontWeight: 600, cursor: "pointer" }} onClick={() => { setMoveStatus("needs_investigation"); setMoveNotes(""); }}>Failed ✗</button>
                   </div>
                 </>
               ) : (
