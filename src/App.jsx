@@ -569,7 +569,9 @@ function Firearms({ data, setData, userId }) {
     try {
       const { error } = await supabase.from("firearms").update({ for_sale: true, for_sale_listed_at: today() }).eq("id", id);
       if (error) throw error;
-      setData(prev => ({ ...prev, firearms: (prev.firearms || []).map(f => f.id === id ? { ...f, for_sale: true, for_sale_listed_at: today() } : f) }));
+      const updatedFirearms = (data.firearms || []).map(f => f.id === id ? { ...f, for_sale: true, for_sale_listed_at: today() } : f);
+      setData(prev => ({ ...prev, firearms: updatedFirearms }));
+      showError("Firearm moved to For Sale", "Firearms");
     } catch (e) { showError(e.message, "Firearms > Move to Sale"); }
   };
 
@@ -668,7 +670,9 @@ function Attachments({ data, setData, userId }) {
     try {
       const { error } = await supabase.from("accessories").update({ for_sale: true, for_sale_listed_at: today() }).eq("id", id);
       if (error) throw error;
-      setData(prev => ({ ...prev, accessories: (prev.accessories || []).map(a => a.id === id ? { ...a, for_sale: true, for_sale_listed_at: today() } : a) }));
+      const updatedAccessories = (data.accessories || []).map(a => a.id === id ? { ...a, for_sale: true, for_sale_listed_at: today() } : a);
+      setData(prev => ({ ...prev, accessories: updatedAccessories }));
+      showError("Attachment moved to For Sale", "Attachments");
     } catch (e) { showError(e.message, "Attachments > Move to Sale"); }
   };
 
