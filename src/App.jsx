@@ -583,6 +583,8 @@ function Firearms({ data, setData, userId }) {
       const { error } = await supabase.from("firearms").update({ for_sale: true, for_sale_listed_at: today() }).eq("id", id);
       if (error) throw error;
       setData(prev => ({ ...prev, firearms: (prev.firearms || []).map(f => f.id === id ? { ...f, for_sale: true, for_sale_listed_at: today() } : f) }));
+      // Reload to update filtered view
+      loadData();
     } catch (e) { showError(e.message, "Firearms > Move to Sale"); }
   };
 
@@ -678,6 +680,8 @@ function Attachments({ data, setData, userId }) {
       const { error } = await supabase.from("accessories").update({ for_sale: true, for_sale_listed_at: today() }).eq("id", id);
       if (error) throw error;
       setData(prev => ({ ...prev, accessories: (prev.accessories || []).map(a => a.id === id ? { ...a, for_sale: true, for_sale_listed_at: today() } : a) }));
+      // Reload to update filtered view
+      loadData();
     } catch (e) { showError(e.message, "Attachments > Move to Sale"); }
   };
 
@@ -1967,12 +1971,12 @@ body { background: var(--bg); font-family: 'Archivo', system-ui, sans-serif; col
 .firearm-card:hover, .log-card:hover, .addon-card:hover, .ammo-card:hover, .sale-card:hover, .loadout-card:hover { transform: translateY(-2px); border-color: var(--line2); }
 .card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
 .card-head div { display: flex; flex-direction: column; gap: 2px; }
-.card-head strong { font-size: 14px; }
-.card-body { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; font-size: 12px; }
+.card-head strong { font-size: 14px; color: var(--text); }
+.card-body { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; font-size: 12px; color: var(--text); }
 .card-body .dim { color: var(--dim); }
 .card-foot { display: flex; justify-content: space-between; align-items: center; padding-top: 8px; border-top: 1px solid var(--line); font-size: 12px; color: var(--dim); }
 .empty { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 70px 20px; color: var(--faint); text-align: center; border: 1px dashed var(--line2); border-radius: var(--radius); }
-.empty strong { font-size: 15px; color: var(--dim); font-family: 'Oswald', sans-serif; }
+.empty strong { font-size: 15px; color: var(--text); font-family: 'Oswald', sans-serif; }
 .login-wrap { min-height: 100vh; display: grid; place-items: center; position: relative; padding: 20px; overflow: hidden; }
 .login-bg { position: absolute; inset: 0; background: radial-gradient(700px 500px at 20% 10%, rgba(214,124,63,.08), transparent 60%), var(--bg); z-index: 0; }
 .login-card { position: relative; z-index: 1; background: var(--bg2); border: 1px solid var(--line2); border-radius: 16px; padding: 40px 32px; width: 100%; max-width: 420px; box-shadow: 0 20px 60px rgba(0,0,0,.6); }
