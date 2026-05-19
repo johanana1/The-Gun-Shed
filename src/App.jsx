@@ -746,6 +746,31 @@ function Dashboard({ data, go }) {
           </div>
         </div>
       )}
+
+      {/* Safe Audit */}
+      <div style={{ background: "var(--panel)", border: "1px solid var(--line)", borderRadius: "var(--radius)", padding: 18 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", marginBottom: 12 }}>
+          <div>
+            <h3 style={{ fontSize: 14, fontFamily: "'Oswald',sans-serif" }}>Safe Audit</h3>
+            <p style={{ fontSize: 11, color: "var(--dim)", marginTop: 4 }}>Periodic audit of all firearms for inventory accuracy</p>
+          </div>
+        </div>
+        <div style={{ fontSize: 12, color: "var(--dim)", marginBottom: 12 }}>Next audit due in ~90 days</div>
+        <button
+          onClick={() => alert("Safe Audit feature coming soon - will allow you to audit all firearms at once")}
+          style={{
+            background: "var(--info)",
+            color: "#fff",
+            border: "none",
+            borderRadius: 4,
+            padding: "10px 16px",
+            fontWeight: 600,
+            cursor: "pointer",
+          }}
+        >
+          🔍 Initiate Audit
+        </button>
+      </div>
     </div>
   );
 }
@@ -1340,6 +1365,173 @@ function SuppliesNeeded({ data, setData, userId }) {
           <button className="primary" onClick={save} style={{ width: "100%" }}>Save</button>
         </Modal>
       )}
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════
+   GUN PARTS
+   ══════════════════════════════════════════════════════ */
+function GunParts({ data, setData, userId }) {
+  const { showError } = useError();
+  const PART_TYPES = ["Upper Receiver","Lower Receiver","Barrel","Gas System","Stock","Grip","Handguard","Trigger","Bolt Carrier","Charging Handle","Safety Selector","Magazine","Rail System","Muzzle Device","Optic Mount","Scope","Red Dot","Laser","Light","Suppressor","Other"];
+  const EMPTY = { name: "", part_type: "", manufacturer: "", model: "", assigned_to: "", purchase_date: today(), value: 0, condition: "Like New", notes: "" };
+  const [editId, setEditId] = useState(null);
+  const [form, setForm] = useState({ ...EMPTY });
+  const parts = data.gun_parts || [];
+  const table = useTable(parts, ["name", "manufacturer", "part_type"], "part_type");
+  const firearms = (data.firearms || []).filter(f => !f.for_sale && !f.sold);
+
+  const closeModal = () => { setEditId(null); setForm({ ...EMPTY }); };
+  const openEdit = (p) => {
+    setForm({ name: p.name || "", part_type: p.part_type || "", manufacturer: p.manufacturer || "", model: p.model || "", assigned_to: p.assigned_to || "", purchase_date: p.purchase_date || today(), value: p.value || 0, condition: p.condition || "Like New", notes: p.notes || "" });
+    setEditId(p.id);
+  };
+
+  const save = async () => {
+    if (!form.name || !form.part_type) { showError("Name and type required", "Gun Parts"); return; }
+    try {
+      const rec = { name: form.name, part_type: form.part_type, manufacturer: form.manufacturer || "", model: form.model || "", assigned_to: form.assigned_to || "", purchase_date: form.purchase_date, value: form.value || 0, condition: form.condition, notes: form.notes, user_id: userId };
+      if (editId && editId !== "new") {
+        const { error } = await supabase.from("gun_parts").update(rec).eq("id", editId);
+        if (error) throw error;
+      } else {
+        const { data: ins, error } = await supabase.from("gun_parts").insert([rec]).select();
+        if (error) throw error;
+        setEditId(ins[0].id);
+      }
+      const { data: d } = await supabase.from("gun_parts").select("*");
+      setData(prev => ({ ...prev, gun_parts: d || [] }));
+    } catch (e) { showError(e.message, "Gun Parts > Save"); }
+  };
+
+  const del = async (id) => {
+    if (!confirm("Delete this part?")) return;
+    try {
+      const { error } = await supabase.from("gun_parts").delete().eq("id", id);
+      if (error) throw error;
+      setData(prev => ({ ...prev, gun_parts: (prev.gun_parts || []).filter(p => p.id !== id) }));
+    } catch (e) { showError(e.message, "Gun Parts > Delete"); }
+  };
+
+  return (
+    <div className="tab">
+      {parts.length === 0 ? (
+        <div style={{ textAlign: "center", padding: 40, color: "var(--dim)" }}>
+          <p>No gun parts logged yet. Add your first modular part.</p>
+          <button className="primary" onClick={() => { setForm({ ...EMPTY }); setEditId("new"); }} style={{ marginTop: 12 }}>+ Add Part</button>
+        </div>
+      ) : (
+        <>
+          <div style={{ marginBottom: 20, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <input type="text" placeholder="Search parts..." onChange={(e) => table.search(e.target.value)} style={{ flex: 1, marginRight: 12 }} />
+            <button className="primary" onClick={() => { setForm({ ...EMPTY }); setEditId("new"); }}>+ Add Part</button>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 12 }}>
+            {table.filtered.map(p => (
+              <div key={p.id} style={{ background: "var(--panel)", border: "1px solid var(--line)", borderRadius: "var(--radius)", padding: 14 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", marginBottom: 10 }}>
+                  <div>
+                    <strong style={{ fontSize: 14 }}>{p.name}</strong>
+                    <div style={{ fontSize: 11, color: "var(--dim)" }}>{p.part_type}</div>
+                  </div>
+                  <div style={{ display: "flex", gap: 4 }}>
+                    <button className="ghost small" onClick={() => openEdit(p)} style={{ padding: "4px 8px", fontSize: 11 }}>Edit</button>
+                    <button className="ghost small" onClick={() => del(p.id)} style={{ padding: "4px 8px", fontSize: 11, color: "var(--danger)" }}>Delete</button>
+                  </div>
+                </div>
+                {p.manufacturer && <div style={{ fontSize: 11, color: "var(--dim)", marginBottom: 6 }}>{p.manufacturer} {p.model}</div>}
+                {p.assigned_to && <div style={{ fontSize: 11, color: "var(--accent)", marginBottom: 6 }}>Assigned: {firearms.find(f => f.id === p.assigned_to)?.nickname || "Unknown"}</div>}
+                <div style={{ fontSize: 11, color: "var(--dim)" }}>Condition: {p.condition} | ${p.value}</div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {editId && (
+        <Modal title={editId === "new" ? "Add Part" : "Edit Part"} onClose={closeModal}>
+          <Field label="Part Name"><input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} /></Field>
+          <Field label="Type"><select value={form.part_type} onChange={e => setForm({ ...form, part_type: e.target.value })}><option value="">Select...</option>{PART_TYPES.map(t => <option key={t}>{t}</option>)}</select></Field>
+          <Field label="Manufacturer"><input value={form.manufacturer} onChange={e => setForm({ ...form, manufacturer: e.target.value })} /></Field>
+          <Field label="Model"><input value={form.model} onChange={e => setForm({ ...form, model: e.target.value })} /></Field>
+          <Field label="Assigned Firearm"><select value={form.assigned_to} onChange={e => setForm({ ...form, assigned_to: e.target.value })}><option value="">None</option>{firearms.map(f => <option key={f.id} value={f.id}>{f.nickname || f.manufacturer} {f.model}</option>)}</select></Field>
+          <Field label="Purchase Date"><input type="date" value={form.purchase_date} onChange={e => setForm({ ...form, purchase_date: e.target.value })} /></Field>
+          <Field label="Value"><input type="number" value={form.value} onChange={e => setForm({ ...form, value: parseFloat(e.target.value) || 0 })} /></Field>
+          <Field label="Condition"><select value={form.condition} onChange={e => setForm({ ...form, condition: e.target.value })}><option>Like New</option><option>Good</option><option>Fair</option><option>Poor</option></select></Field>
+          <Field label="Notes"><textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} style={{ minHeight: 60 }} /></Field>
+          <div style={{ display: "flex", gap: 8 }}><button className="primary" onClick={save} style={{ flex: 1 }}>Save</button><button className="ghost" onClick={closeModal}>Cancel</button></div>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════
+   INSURANCE MANIFEST
+   ══════════════════════════════════════════════════════ */
+function InsuranceManifest({ data }) {
+  const firearms = (data.firearms || []).filter(f => !f.for_sale && !f.sold);
+  const totalValue = firearms.reduce((sum, f) => sum + (f.value || 0), 0);
+
+  const downloadPDF = () => {
+    const doc = firearms.map(f => `${f.manufacturer} ${f.model} - Serial: ${f.serial} - ${f.caliber} - Added: ${f.created_at?.split('T')[0]} - Value: $${f.value}`).join('\n');
+    const blob = new Blob([`GUN SHED INSURANCE MANIFEST\nGenerated: ${new Date().toLocaleDateString()}\n\nTotal Collection Value: $${totalValue.toLocaleString()}\n\n${doc}`], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `insurance-manifest-${today()}.txt`;
+    a.click();
+  };
+
+  return (
+    <div className="tab">
+      <div style={{ background: "var(--panel)", border: "1px solid var(--line)", borderRadius: "var(--radius)", padding: 20, marginBottom: 24 }}>
+        <h2 style={{ marginBottom: 12 }}>Insurance Manifest</h2>
+        <p style={{ color: "var(--dim)", marginBottom: 16 }}>Official record of your firearm collection for insurance purposes.</p>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16, marginBottom: 20 }}>
+          <div>
+            <div style={{ fontSize: 11, color: "var(--dim)" }}>Total Firearms</div>
+            <div style={{ fontSize: 24, fontWeight: 700, color: "var(--accent)" }}>{firearms.length}</div>
+          </div>
+          <div>
+            <div style={{ fontSize: 11, color: "var(--dim)" }}>Total Insured Value</div>
+            <div style={{ fontSize: 24, fontWeight: 700, color: "var(--green)" }}>${totalValue.toLocaleString()}</div>
+          </div>
+          <div>
+            <div style={{ fontSize: 11, color: "var(--dim)" }}>Last Updated</div>
+            <div style={{ fontSize: 14, fontWeight: 600 }}>{new Date().toLocaleDateString()}</div>
+          </div>
+        </div>
+        <button onClick={downloadPDF} style={{ background: "var(--accent)", color: "#fff", border: "none", borderRadius: 4, padding: "10px 16px", fontWeight: 600, cursor: "pointer" }}>📥 Download Manifest</button>
+      </div>
+
+      <div style={{ background: "var(--panel)", border: "1px solid var(--line)", borderRadius: "var(--radius)", padding: 0, overflowX: "auto" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+          <thead>
+            <tr style={{ borderBottom: "2px solid var(--line)", background: "var(--panel2)" }}>
+              <th style={{ padding: 12, textAlign: "left", fontWeight: 600 }}>Manufacturer</th>
+              <th style={{ padding: 12, textAlign: "left", fontWeight: 600 }}>Model</th>
+              <th style={{ padding: 12, textAlign: "left", fontWeight: 600 }}>Serial</th>
+              <th style={{ padding: 12, textAlign: "center", fontWeight: 600 }}>Caliber</th>
+              <th style={{ padding: 12, textAlign: "center", fontWeight: 600 }}>Added</th>
+              <th style={{ padding: 12, textAlign: "right", fontWeight: 600 }}>Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            {firearms.map((f, idx) => (
+              <tr key={f.id} style={{ borderBottom: "1px solid var(--line)", background: idx % 2 === 0 ? "var(--panel)" : "transparent" }}>
+                <td style={{ padding: 12 }}>{f.manufacturer}</td>
+                <td style={{ padding: 12 }}>{f.model}</td>
+                <td style={{ padding: 12, fontFamily: "monospace", fontSize: 11, color: "var(--dim)" }}>{f.serial}</td>
+                <td style={{ padding: 12, textAlign: "center" }}>{f.caliber}</td>
+                <td style={{ padding: 12, textAlign: "center", fontSize: 11, color: "var(--dim)" }}>{f.created_at?.split('T')[0]}</td>
+                <td style={{ padding: 12, textAlign: "right", fontWeight: 600 }}>${f.value?.toLocaleString()}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
@@ -2199,10 +2391,12 @@ export default function App() {
     { key: "firearms", label: "Firearms", icon: Target },
     { key: "attachments", label: "Attachments", icon: Package },
     { key: "ammunition", label: "Ammunition", icon: Boxes },
+    { key: "gunparts", label: "Gun Parts", icon: Hammer },
     { key: "upkeep", label: "Up-Keep", icon: Wrench },
     { key: "rangelog", label: "Range Log", icon: MapPin },
     { key: "loadout", label: "Load Out", icon: Backpack },
     { key: "supplies", label: "Supplies Needed", icon: ShoppingCart },
+    { key: "insurance", label: "Insurance Manifest", icon: FileText },
     { key: "forsale", label: "For Sale", icon: Tag },
     { key: "support", label: "Support", icon: HelpCircle },
   ];
@@ -2249,10 +2443,12 @@ export default function App() {
               {tab === "firearms" && <Firearms data={data} setData={setData} userId={user.id} />}
               {tab === "attachments" && <Attachments data={data} setData={setData} userId={user.id} />}
               {tab === "ammunition" && <Ammunition data={data} setData={setData} userId={user.id} />}
+              {tab === "gunparts" && <GunParts data={data} setData={setData} userId={user.id} />}
               {tab === "upkeep" && <UpKeep data={data} setData={setData} />}
               {tab === "rangelog" && <RangeLog data={data} setData={setData} userId={user.id} />}
               {tab === "loadout" && <LoadOut data={data} setData={setData} userId={user.id} />}
               {tab === "supplies" && <SuppliesNeeded data={data} setData={setData} userId={user.id} />}
+              {tab === "insurance" && <InsuranceManifest data={data} />}
               {tab === "forsale" && <ForSale data={data} setData={setData} userId={user.id} />}
               {tab === "support" && <Support />}
               {tab === "tickets" && isAdmin && <Tickets userId={user.id} userEmail={user.email} isSuperAdmin={isSuperAdmin} />}
