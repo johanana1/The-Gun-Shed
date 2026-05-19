@@ -1267,6 +1267,34 @@ function Tickets({ userId, userEmail, isSuperAdmin }) {
     } catch (e) { showError(e.message, "Tickets > Unclaim"); }
   };
 
+  const generateTestingStepsAI = async (ticket) => {
+    try {
+      const prompt = `Generate clear, step-by-step testing instructions for QA to verify this fix works. Keep it concise and actionable.
+
+Type: ${ticket.type}
+Title: ${ticket.title}
+Description: ${ticket.description || ""}
+Features: ${ticket.feature_requests ? ticket.feature_requests.map(f => f.title).join(", ") : ""}
+
+Provide numbered steps only, no preamble.`;
+
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${import.meta.env.VITE_GEMINI_API_KEY}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { maxOutputTokens: 300 }
+        })
+      });
+
+      const data = await response.json();
+      const steps = data.candidates?.[0]?.content?.parts?.[0]?.text || "Unable to generate steps. Please add manually.";
+      setTestingSteps(steps);
+    } catch (e) {
+      showError("Failed to generate testing steps. Add manually.", "AI");
+    }
+  };
+
   const updateTicketStatus = async () => {
     if (!detailTicket || !moveStatus) { showError("Status and notes required.", "Tickets"); return; }
     if (!moveNotes.trim() && moveStatus !== detailTicket.status) { showError("Please add notes when changing status.", "Tickets"); return; }
@@ -1548,9 +1576,12 @@ function Tickets({ userId, userEmail, isSuperAdmin }) {
               </Field>
               <Field label="Notes"><textarea value={moveNotes} onChange={e => setMoveNotes(e.target.value)} placeholder="Add notes for this status change..." style={{ minHeight: 80 }} /></Field>
               {moveStatus === "pending_testing" && (
-                <Field label="Testing Steps (How should QA test this?)">
-                  <textarea value={testingSteps} onChange={e => setTestingSteps(e.target.value)} placeholder="1. Click the login button&#10;2. Enter credentials&#10;3. Verify redirect to dashboard&#10;4. Check user session is valid" style={{ minHeight: 100, fontFamily: "monospace" }} />
-                </Field>
+                <>
+                  <Field label="Testing Steps (How should QA test this?)">
+                    <textarea value={testingSteps} onChange={e => setTestingSteps(e.target.value)} placeholder="1. Click the login button&#10;2. Enter credentials&#10;3. Verify redirect to dashboard&#10;4. Check user session is valid" style={{ minHeight: 100, fontFamily: "monospace" }} />
+                  </Field>
+                  <button className="ghost" onClick={() => generateTestingStepsAI(detailTicket)} style={{ width: "100%", marginBottom: 12 }}>✨ Auto-Generate Steps with AI</button>
+                </>
               )}
               <button className="primary" onClick={updateTicketStatus} style={{ width: "100%" }} disabled={!moveStatus}>Update Ticket</button>
             </div>
