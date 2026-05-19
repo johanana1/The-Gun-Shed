@@ -1204,7 +1204,7 @@ function Tickets({ userId, userEmail, isSuperAdmin }) {
     if (!query.trim()) return tickets;
     const q = query.toLowerCase();
     return tickets.filter(t =>
-      getTicketNumber(t).includes(q) ||
+      String(getTicketNumber(t)).includes(q) ||
       t.title?.toLowerCase().includes(q) ||
       t.description?.toLowerCase().includes(q) ||
       t.admin_notes?.toLowerCase().includes(q) ||
