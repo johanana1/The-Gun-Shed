@@ -1215,12 +1215,10 @@ function Tickets({ userId, userEmail, isSuperAdmin }) {
       const history = [{ action: "created", by: userId, by_email: userEmail, at: new Date().toISOString(), notes: "" }];
       
       // Call database function to atomically get next ticket number
-      const { data, error: funcError } = await supabase.rpc("get_next_ticket_number");
+      const { data: ticketNum, error: funcError } = await supabase.rpc("get_next_ticket_number");
       
       if (funcError) throw funcError;
-      if (data === null || data === undefined) throw new Error("Failed to get ticket number");
-      
-      const ticketNum = String(data);
+      if (ticketNum === null || ticketNum === undefined) throw new Error("Failed to get ticket number");
       
       const { error } = await supabase.from("tickets").insert([{
         user_id: userId, user_email: userEmail, type: "manual", status: "pending",
@@ -1228,7 +1226,7 @@ function Tickets({ userId, userEmail, isSuperAdmin }) {
         notes: "", testing_notes: "", ticket_history: history,
         test_claimed_by: null, test_claimed_at: null,
         last_touched_by: userId, last_touched_at: new Date().toISOString(),
-        ticket_number: ticketNum,
+        ticket_number: String(ticketNum),
       }]);
       if (error) throw error;
       setManualTicket(null);
@@ -1243,12 +1241,10 @@ function Tickets({ userId, userEmail, isSuperAdmin }) {
       const history = [{ action: "created", by: userId, by_email: userEmail, at: new Date().toISOString(), notes: "" }];
       
       // Call database function to atomically get next ticket number
-      const { data, error: funcError } = await supabase.rpc("get_next_ticket_number");
+      const { data: ticketNum, error: funcError } = await supabase.rpc("get_next_ticket_number");
       
       if (funcError) throw funcError;
-      if (data === null || data === undefined) throw new Error("Failed to get ticket number");
-      
-      const ticketNum = String(data);
+      if (ticketNum === null || ticketNum === undefined) throw new Error("Failed to get ticket number");
       
       // Use first feature title as ticket title
       const title = validItems[0].title;
@@ -1259,7 +1255,7 @@ function Tickets({ userId, userEmail, isSuperAdmin }) {
         admin_notes: "", notes: "", testing_notes: "", ticket_history: history,
         test_claimed_by: null, test_claimed_at: null,
         last_touched_by: userId, last_touched_at: new Date().toISOString(),
-        ticket_number: ticketNum,
+        ticket_number: String(ticketNum),
       }]);
       if (error) throw error;
       setFeatureReq(null);
