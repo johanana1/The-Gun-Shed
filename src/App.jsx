@@ -43,7 +43,7 @@ const FRIENDLY_ERRORS = {
   "permission denied": "You don't have permission to do that.",
   "duplicate": "That item already exists.",
   "violates": "There was a data conflict. Please check your input.",
-  "schema cache": "There's a temporary issue. Please refresh and try again.",
+  "schema cache": "An issue has been identified, Development team will be notified.",
   "PGRST": "There was a database issue. Please try again.",
   "JWT": "Your session expired. Please log in again.",
   "invalid input": "Please check your input and try again.",
@@ -90,7 +90,7 @@ const CHANGELOG = [
     { type: "added", text: "Automatic error ticket creation with friendly user-facing messages." },
     { type: "added", text: "Admins can manually submit tickets with additional context notes." },
     { type: "added", text: "Feature request tickets — up to 5 feature requests per ticket." },
-    { type: "added", text: "Duplicate ticket detection — prevents repeat tickets for same error within 1 hour." },
+    { type: "added", text: "Duplicate ticket detection — prevents repeat tickets for same error within 24 hours." },
     { type: "added", text: "Ticket numbering system for tracking (#001, #002, etc.)." },
     { type: "added", text: "Clickable ticket cards with full details modal." },
     { type: "added", text: "Ticket management for super admin — move tickets between pending, working, completed rejected, completed resolved." },
@@ -251,8 +251,8 @@ function ErrorProvider({ children, userId, userEmail, isAdmin }) {
 
   const isDuplicate = (errMsg, source) => {
     const now = Date.now();
-    // Clean entries older than 1 hour
-    recentErrorsRef.current = recentErrorsRef.current.filter(e => now - e.ts < 3600000);
+    // Clean entries older than 24 hours
+    recentErrorsRef.current = recentErrorsRef.current.filter(e => now - e.ts < 86400000);
     const key = `${String(errMsg).slice(0, 200)}::${source}`;
     const exists = recentErrorsRef.current.some(e => e.key === key);
     if (!exists) recentErrorsRef.current.push({ key, ts: now });
@@ -1140,6 +1140,7 @@ function Tickets({ userId, userEmail, isSuperAdmin }) {
   const [detailTicket, setDetailTicket] = useState(null);
   const [moveStatus, setMoveStatus] = useState("");
   const [moveNotes, setMoveNotes] = useState("");
+  const [testingSteps, setTestingSteps] = useState("");
   const [claimNotes, setClaimNotes] = useState("");
 
   useEffect(() => { loadTickets(); }, []);
@@ -1153,9 +1154,10 @@ function Tickets({ userId, userEmail, isSuperAdmin }) {
     finally { setLoading(false); }
   };
 
-  // Generate ticket number from position
-  const getTicketNumber = (ticketId) => {
-    const idx = tickets.findIndex(t => t.id === ticketId);
+  // Generate ticket number from database
+  const getTicketNumber = (ticket) => {
+    if (ticket.ticket_number) return String(ticket.ticket_number).padStart(3, "0");
+    const idx = tickets.findIndex(t => t.id === ticket.id);
     return String(idx + 1).padStart(3, "0");
   };
 
@@ -1164,7 +1166,7 @@ function Tickets({ userId, userEmail, isSuperAdmin }) {
     if (!query.trim()) return tickets;
     const q = query.toLowerCase();
     return tickets.filter(t =>
-      getTicketNumber(t.id).includes(q) ||
+      getTicketNumber(t).includes(q) ||
       t.title?.toLowerCase().includes(q) ||
       t.description?.toLowerCase().includes(q) ||
       t.admin_notes?.toLowerCase().includes(q) ||
@@ -1178,12 +1180,25 @@ function Tickets({ userId, userEmail, isSuperAdmin }) {
     try {
       const title = generateTicketTitle(manualTicket.description);
       const history = [{ action: "created", by: userId, by_email: userEmail, at: new Date().toISOString(), notes: "" }];
+      
+      // Get next ticket number - query all tickets and find max
+      const { data: allTickets, error: queryError } = await supabase
+        .from("tickets")
+        .select("ticket_number")
+        .order("ticket_number", { ascending: false })
+        .limit(1);
+      
+      if (queryError) throw queryError;
+      const maxNum = allTickets && allTickets.length > 0 ? parseInt(allTickets[0].ticket_number) || 0 : 0;
+      const nextNum = String(maxNum + 1);
+      
       const { error } = await supabase.from("tickets").insert([{
         user_id: userId, user_email: userEmail, type: "manual", status: "pending",
         title, description: manualTicket.description, admin_notes: manualTicket.admin_notes || "",
         notes: "", testing_notes: "", ticket_history: history,
         test_claimed_by: null, test_claimed_at: null,
         last_touched_by: userId, last_touched_at: new Date().toISOString(),
+        ticket_number: nextNum,
       }]);
       if (error) throw error;
       setManualTicket(null);
@@ -1196,12 +1211,28 @@ function Tickets({ userId, userEmail, isSuperAdmin }) {
     if (validItems.length === 0) { showError("At least one feature title is required.", "Tickets"); return; }
     try {
       const history = [{ action: "created", by: userId, by_email: userEmail, at: new Date().toISOString(), notes: "" }];
+      
+      // Get next ticket number - query all tickets and find max
+      const { data: allTickets, error: queryError } = await supabase
+        .from("tickets")
+        .select("ticket_number")
+        .order("ticket_number", { ascending: false })
+        .limit(1);
+      
+      if (queryError) throw queryError;
+      const maxNum = allTickets && allTickets.length > 0 ? parseInt(allTickets[0].ticket_number) || 0 : 0;
+      const nextNum = String(maxNum + 1);
+      
+      // Auto-generate title from first feature
+      const title = generateTicketTitle(validItems[0].title);
+      
       const { error } = await supabase.from("tickets").insert([{
         user_id: userId, user_email: userEmail, type: "feature_request", status: "pending",
-        title: "Feature Request", description: "", feature_requests: validItems,
+        title: title, description: "", feature_requests: validItems,
         admin_notes: "", notes: "", testing_notes: "", ticket_history: history,
         test_claimed_by: null, test_claimed_at: null,
         last_touched_by: userId, last_touched_at: new Date().toISOString(),
+        ticket_number: nextNum,
       }]);
       if (error) throw error;
       setFeatureReq(null);
@@ -1239,6 +1270,7 @@ function Tickets({ userId, userEmail, isSuperAdmin }) {
   const updateTicketStatus = async () => {
     if (!detailTicket || !moveStatus) { showError("Status and notes required.", "Tickets"); return; }
     if (!moveNotes.trim() && moveStatus !== detailTicket.status) { showError("Please add notes when changing status.", "Tickets"); return; }
+    if (moveStatus === "pending_testing" && !testingSteps.trim()) { showError("Please add testing steps for QA.", "Tickets"); return; }
     try {
       let action = "status_changed";
       if (moveStatus === "completed_resolved") action = "testing_passed";
@@ -1249,10 +1281,11 @@ function Tickets({ userId, userEmail, isSuperAdmin }) {
         status: moveStatus, ticket_history: history, last_touched_by: userId, last_touched_at: new Date().toISOString()
       };
       if (moveNotes) updateData.notes = moveNotes;
+      if (moveStatus === "pending_testing" && testingSteps) updateData.testing_steps = testingSteps;
       
       const { error } = await supabase.from("tickets").update(updateData).eq("id", detailTicket.id);
       if (error) throw error;
-      setDetailTicket(null); setMoveStatus(""); setMoveNotes("");
+      setDetailTicket(null); setMoveStatus(""); setMoveNotes(""); setTestingSteps("");
       loadTickets();
     } catch (e) { showError(e.message, "Tickets > Update Status"); }
   };
@@ -1300,7 +1333,7 @@ function Tickets({ userId, userEmail, isSuperAdmin }) {
             <h3 style={{ fontSize: 13, color: "var(--faint)", marginBottom: 8, fontFamily: "'Oswald',sans-serif" }}>{day}</h3>
             <div style={{ display: "grid", gap: 8 }}>
               {dayTickets.map(t => {
-                const ticketNum = getTicketNumber(t.id);
+                const ticketNum = getTicketNumber(t);
                 const isClaimed = t.test_claimed_by && t.test_claimed_by !== userId;
                 const isClaimedByMe = t.test_claimed_by === userId;
                 return (
@@ -1379,7 +1412,7 @@ function Tickets({ userId, userEmail, isSuperAdmin }) {
 
       {/* Ticket Details Modal */}
       {detailTicket && (
-        <Modal title={`#${getTicketNumber(detailTicket.id)} — ${detailTicket.title}`} onClose={() => setDetailTicket(null)} wide>
+        <Modal title={`#${getTicketNumber(detailTicket)} — ${detailTicket.title}`} onClose={() => setDetailTicket(null)} wide>
           {/* Metadata */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: 10, marginBottom: 16, padding: 12, background: "var(--panel2)", borderRadius: 8, border: "1px solid var(--line)" }}>
             <div><span style={{ fontSize: 9, color: "var(--faint)", textTransform: "uppercase", letterSpacing: ".5px", fontWeight: 700 }}>Type</span><div style={{ fontSize: 12, fontWeight: 600, marginTop: 4 }}>{detailTicket.type === "feature_request" ? "Feature" : detailTicket.type === "manual" ? "Manual" : "Error"}</div></div>
@@ -1420,6 +1453,16 @@ function Tickets({ userId, userEmail, isSuperAdmin }) {
             </div>
           )}
 
+          {/* Testing Steps */}
+          {detailTicket.testing_steps && (
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "var(--green)", textTransform: "uppercase", letterSpacing: ".5px", marginBottom: 6 }}>How to Test</div>
+              <div style={{ fontSize: 12, color: "var(--text)", lineHeight: 1.8, padding: 12, background: "rgba(94,145,120,.08)", borderRadius: 8, border: "1px solid rgba(94,145,120,.2)", whiteSpace: "pre-wrap", fontFamily: "monospace" }}>
+                {detailTicket.testing_steps}
+              </div>
+            </div>
+          )}
+
           {/* Notes */}
           {detailTicket.notes && (
             <div style={{ marginBottom: 16 }}>
@@ -1431,7 +1474,7 @@ function Tickets({ userId, userEmail, isSuperAdmin }) {
           )}
 
           {/* Testing Claim */}
-          {(detailTicket.status === "pending_testing" || detailTicket.status === "working") && (
+          {(detailTicket.status === "pending_testing" || detailTicket.status === "working" || detailTicket.status === "pending") && (
             <div style={{ marginBottom: 16, padding: 12, background: "var(--panel2)", borderRadius: 8, border: "1px solid var(--line)" }}>
               {!detailTicket.test_claimed_by ? (
                 <>
@@ -1504,6 +1547,11 @@ function Tickets({ userId, userEmail, isSuperAdmin }) {
                 </select>
               </Field>
               <Field label="Notes"><textarea value={moveNotes} onChange={e => setMoveNotes(e.target.value)} placeholder="Add notes for this status change..." style={{ minHeight: 80 }} /></Field>
+              {moveStatus === "pending_testing" && (
+                <Field label="Testing Steps (How should QA test this?)">
+                  <textarea value={testingSteps} onChange={e => setTestingSteps(e.target.value)} placeholder="1. Click the login button&#10;2. Enter credentials&#10;3. Verify redirect to dashboard&#10;4. Check user session is valid" style={{ minHeight: 100, fontFamily: "monospace" }} />
+                </Field>
+              )}
               <button className="primary" onClick={updateTicketStatus} style={{ width: "100%" }} disabled={!moveStatus}>Update Ticket</button>
             </div>
           )}
