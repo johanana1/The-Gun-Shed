@@ -28,7 +28,7 @@ const ATTACHMENT_TYPES = ["Scope","Red Dot","Holster","Grip","Magazine","Light",
 const AMMO_TYPES = ["FMJ","JHP","Match","Birdshot","Buckshot","Slug","Subsonic","Frangible","Other"];
 const SUPPLY_CATEGORIES = ["Cleaning Solvents","Lubricants / CLP","Brushes / Patches / Rods","Gun Cases / Bags","Ammo Storage","Targets","Hearing Protection","Eye Protection","Holsters / Belts","Slings / Gear","Manuals","Gun Safe","Maintenance Kits","Mag Pouches","Bore Cleaners","Lights / Batteries","Sights","Grips","Range Supplies","Other"];
 const IMAGE_MAX_MB = 5;
-const APP_VERSION = "1.5.4";
+const APP_VERSION = "1.6.0";
 
 /* ── Friendly Error Translation ────────────────────── */
 const FRIENDLY_ERRORS = {
@@ -142,15 +142,45 @@ const CHANGELOG = [
     { type: "added", text: "Usage counter." },
     { type: "added", text: "Notes field for loadout configurations." },
   ]},
-  { version: "1.2.5", date: "2026-05-11", tag: "", title: "Range Logging System", changes: [
-    { type: "added", text: "Range Log tab for range visits." },
-    { type: "added", text: "Per-visit firearm selection." },
-    { type: "added", text: "Rounds fired tracking." },
-    { type: "added", text: "Range name suggestions." },
-    { type: "added", text: "Loadout association for visits." },
-    { type: "added", text: "Visit notes field." },
+  { version: "1.6.0", date: "2026-05-19", tag: "", title: "[In Development] Safe Audit, Gun Parts, Insurance", changes: [
+    { type: "added", text: "Safe Audit: 3-month rolling timer for account-wide firearm audits." },
+    { type: "added", text: "Gun Parts tab for tracking modular accessories and part configurations." },
+    { type: "added", text: "Insurance Manifest view with coverage details." },
+    { type: "added", text: "Email digest automation (weekly/monthly summaries)." },
+    { type: "added", text: "Last range name displayed on firearm cards." },
   ]},
-  { version: "1.2.0", date: "2026-05-10", tag: "", title: "Up-Keep & Maintenance Tracking", changes: [
+  { version: "1.5.5", date: "2026-05-19", tag: "", title: "Dashboard Overhaul & Up-Keep Improvements", changes: [
+    { type: "added", text: "Rebuilt Dashboard with 6 comprehensive stat cards." },
+    { type: "added", text: "Dashboard pending tasks widget with ticket status tracking." },
+    { type: "added", text: "Dashboard maintenance overdue alert system." },
+    { type: "added", text: "Dashboard quick action buttons for common tasks." },
+    { type: "added", text: "Collection insights section showing top caliber, value, and rounds fired." },
+    { type: "improved", text: "Up-Keep maintenance table with dates displayed for completed tasks." },
+    { type: "improved", text: "Up-Keep button text changed to 'Mark Complete' with better UX." },
+    { type: "improved", text: "Up-Keep definitions changed from tiles to clean list format." },
+    { type: "improved", text: "Default maintenance dates use firearm creation date when unknown." },
+    { type: "added", text: "Firearm rounds_fired field tracking total rounds for each gun." },
+    { type: "added", text: "Rounds fired auto-increment on range log entries." },
+    { type: "fixed", text: "Move to For Sale no longer displays false error message." },
+    { type: "fixed", text: "Ticket numbering system with atomic database counter." },
+    { type: "fixed", text: "Feature requests simplified to single-feature-per-ticket model." },
+    { type: "fixed", text: "AI-generated testing steps for pending_testing status." },
+    { type: "improved", text: "Manufacturers list condensed to top 50 by user consumption." },
+    { type: "improved", text: "All dropdown lists sorted alphabetically." },
+    { type: "removed", text: "Removed current_value field from firearms database." },
+    { type: "added", text: "Claim/unclaim functionality for pending_testing tickets." },
+    { type: "added", text: "Notes required to change ticket status (validation)." },
+    { type: "improved", text: "3-dot menu replaced with inline Edit | Sale | Delete buttons across all tabs." },
+  ]},
+  { version: "1.5.4", date: "2026-05-19", tag: "", title: "Ticket System Enhancements", changes: [
+    { type: "added", text: "Ticket numbering system with sequential counter." },
+    { type: "added", text: "Claim/unclaim for testing tickets." },
+    { type: "added", text: "AI-generated testing steps." },
+    { type: "improved", text: "Feature requests simplified to single feature per ticket." },
+    { type: "improved", text: "Inline buttons replacing 3-dot menu in all tabs." },
+    { type: "fixed", text: "For Sale state updates working correctly." },
+  ]},
+  { version: "1.2.5", date: "2026-05-11", tag: "", title: "Range Logging System", changes: [
     { type: "added", text: "Up-Keep tab with maintenance schedules." },
     { type: "added", text: "Cleaning reminder (30-day cycle)." },
     { type: "added", text: "Oiling reminder (180-day cycle)." },
