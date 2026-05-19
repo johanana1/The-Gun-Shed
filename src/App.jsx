@@ -1194,9 +1194,9 @@ function Tickets({ userId, userEmail, isSuperAdmin }) {
 
   // Generate ticket number from database
   const getTicketNumber = (ticket) => {
-    if (ticket.ticket_number) return String(ticket.ticket_number).padStart(3, "0");
+    if (ticket.ticket_number) return ticket.ticket_number;
     const idx = tickets.findIndex(t => t.id === ticket.id);
-    return String(idx + 1).padStart(3, "0");
+    return String(idx + 1);
   };
 
   // Search tickets
