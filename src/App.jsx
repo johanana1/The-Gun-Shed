@@ -1261,13 +1261,8 @@ function Tickets({ userId, userEmail, isSuperAdmin }) {
       const maxNum = allTickets && allTickets.length > 0 ? parseInt(allTickets[0].ticket_number) || 0 : 0;
       const nextNum = String(maxNum + 1);
       
-      // Auto-generate title from all features
-      const ticketData = { 
-        title: validItems.map(f => f.title).join(' '),
-        description: validItems.map(f => f.description).join(' '),
-        feature_requests: validItems
-      };
-      const title = await generateTicketTitle(ticketData);
+      // Use first feature title as ticket title
+      const title = validItems[0].title;
       
       const { error } = await supabase.from("tickets").insert([{
         user_id: userId, user_email: userEmail, type: "feature_request", status: "pending",
@@ -1292,6 +1287,17 @@ function Tickets({ userId, userEmail, isSuperAdmin }) {
         ticket_history: history, last_touched_by: userId, last_touched_at: new Date().toISOString()
       }).eq("id", ticket.id);
       if (error) throw error;
+      
+      // Update local state immediately
+      setDetailTicket({
+        ...detailTicket,
+        test_claimed_by: userId,
+        test_claimed_at: new Date().toISOString(),
+        ticket_history: history,
+        last_touched_by: userId,
+        last_touched_at: new Date().toISOString()
+      });
+      
       setClaimNotes("");
       loadTickets();
     } catch (e) { showError(e.message, "Tickets > Claim"); }
@@ -1306,6 +1312,17 @@ function Tickets({ userId, userEmail, isSuperAdmin }) {
         ticket_history: history, last_touched_by: userId, last_touched_at: new Date().toISOString()
       }).eq("id", ticket.id);
       if (error) throw error;
+      
+      // Update local state immediately
+      setDetailTicket({
+        ...detailTicket,
+        test_claimed_by: null,
+        test_claimed_at: null,
+        ticket_history: history,
+        last_touched_by: userId,
+        last_touched_at: new Date().toISOString()
+      });
+      
       loadTickets();
     } catch (e) { showError(e.message, "Tickets > Unclaim"); }
   };
@@ -1569,8 +1586,8 @@ Provide numbered steps only, no preamble.`;
                     <button className="ghost" onClick={() => unclaimTesting(detailTicket)} style={{ flex: 1 }}>Unclaim</button>
                     {detailTicket.status === "pending_testing" && (
                       <>
-                        <button className="primary" onClick={() => { setMoveStatus("completed_resolved"); setMoveNotes(""); }} style={{ flex: 1 }}>Passed ✓</button>
-                        <button className="primary danger" onClick={() => { setMoveStatus("needs_investigation"); setMoveNotes(""); }} style={{ flex: 1 }}>Failed ✗</button>
+                        <button className="primary" onClick={() => { setMoveStatus("completed_resolved"); setMoveNotes(""); }} style={{ flex: 1, background: moveStatus === "completed_resolved" ? "var(--green)" : undefined }}>Passed ✓</button>
+                        <button className="primary danger" onClick={() => { setMoveStatus("needs_investigation"); setMoveNotes(""); }} style={{ flex: 1, background: moveStatus === "needs_investigation" ? "var(--danger)" : undefined }}>Failed ✗</button>
                       </>
                     )}
                   </div>
