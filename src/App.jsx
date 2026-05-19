@@ -1214,22 +1214,13 @@ function Tickets({ userId, userEmail, isSuperAdmin }) {
       const title = await generateTicketTitle(manualTicket);
       const history = [{ action: "created", by: userId, by_email: userEmail, at: new Date().toISOString(), notes: "" }];
       
-      // Get and increment ticket counter
-      const { data: counter, error: counterError } = await supabase
-        .from("ticket_counter")
-        .select("next_number")
-        .eq("id", 1);
+      // Call database function to atomically get next ticket number
+      const { data, error: funcError } = await supabase.rpc("get_next_ticket_number");
       
-      if (counterError || !counter || counter.length === 0) throw new Error("Ticket counter error");
-      const ticketNum = String(counter[0].next_number);
+      if (funcError) throw funcError;
+      if (data === null || data === undefined) throw new Error("Failed to get ticket number");
       
-      // Increment counter for next ticket
-      const { error: updateError } = await supabase
-        .from("ticket_counter")
-        .update({ next_number: counter[0].next_number + 1 })
-        .eq("id", 1);
-      
-      if (updateError) throw updateError;
+      const ticketNum = String(data);
       
       const { error } = await supabase.from("tickets").insert([{
         user_id: userId, user_email: userEmail, type: "manual", status: "pending",
@@ -1251,22 +1242,13 @@ function Tickets({ userId, userEmail, isSuperAdmin }) {
     try {
       const history = [{ action: "created", by: userId, by_email: userEmail, at: new Date().toISOString(), notes: "" }];
       
-      // Get and increment ticket counter
-      const { data: counter, error: counterError } = await supabase
-        .from("ticket_counter")
-        .select("next_number")
-        .eq("id", 1);
+      // Call database function to atomically get next ticket number
+      const { data, error: funcError } = await supabase.rpc("get_next_ticket_number");
       
-      if (counterError || !counter || counter.length === 0) throw new Error("Ticket counter error");
-      const ticketNum = String(counter[0].next_number);
+      if (funcError) throw funcError;
+      if (data === null || data === undefined) throw new Error("Failed to get ticket number");
       
-      // Increment counter for next ticket
-      const { error: updateError } = await supabase
-        .from("ticket_counter")
-        .update({ next_number: counter[0].next_number + 1 })
-        .eq("id", 1);
-      
-      if (updateError) throw updateError;
+      const ticketNum = String(data);
       
       // Use first feature title as ticket title
       const title = validItems[0].title;
