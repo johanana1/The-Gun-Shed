@@ -210,8 +210,21 @@ const generateTicketTitle = async (ticket) => {
   
   // Try AI generation
   try {
-    const content = `${ticket.title || ''} ${ticket.description || ''} ${ticket.feature_requests?.map(f => f.title).join(' ') || ''}`;
-    const prompt = `Summarize this in exactly 5 words, max 50 characters total. Just the 5 words, nothing else:\n\n${content}`;
+    // Build comprehensive content from all ticket fields
+    let content = "";
+    if (ticket.description) content += `Description: ${ticket.description}\n`;
+    if (ticket.admin_notes) content += `Notes: ${ticket.admin_notes}\n`;
+    if (ticket.feature_requests && ticket.feature_requests.length > 0) {
+      content += `Features: ${ticket.feature_requests.map(f => `${f.title} - ${f.description}`).join('; ')}\n`;
+    }
+    if (ticket.title) content += `Title: ${ticket.title}\n`;
+    
+    const prompt = `You are a tech support ticket summarizer. Read this ticket and create a 5-word concise title that summarizes the main issue or request. Be specific and descriptive.
+
+TICKET:
+${content}
+
+Respond with ONLY 5 words, max 50 characters total, nothing else:`;
     
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${import.meta.env.VITE_GEMINI_API_KEY}`, {
       method: "POST",
