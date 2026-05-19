@@ -21,7 +21,7 @@ function LogoIcon({ size = 24 }) {
 }
 
 /* ── Constants ─────────────────────────────────────── */
-const MANUFACTURERS = ["Glock","Smith & Wesson","Sig Sauer","Ruger","Colt","Remington","Springfield Armory","Beretta","CZ","Heckler & Koch","Winchester","Mossberg","Savage Arms","Browning","FN Herstal","Walther","Kimber","Daniel Defense","Aero Precision","Palmetto State Armory","Henry","Marlin","Benelli","Tikka","Bergara","Other"];
+const MANUFACTURERS = ["Adcor Defense","Airsoft Masterpiece","American Tactical","Anderson Manufacturing","Anschutz","Anvi Arms","Apache Arms","Archon Firearms","Arsenal Firearms","Arsenal Inc.","Astra","ATI","Auto Ordnance","AYA","Aya","Babcock","Badger Ordnance","Baikal","Baker Guns","Ballard","Ballester Molina","Ballistic","Bangor & Aroostook","Barrett","Battle Rifles Inc.","Beeman","Beerstem","Belarus","Benelli","Beretta","Bergara","Bernardelli","Bersa","Besnoitazo","Bethel Firearms","Biasi","Bill Hicks","Billinghurst","Blaser","Bliss & Godwin","Bond Arms","Booth & Sons","Borchardt","Bosis","Bowen","Breda","Breda-Fabbrica","Brenneke","British Bulldog","British Small Arms Company","Brno","Brno-Strakonice","Broadsword","Brockman's","Broken Top Tactical","Bronco","Brooks & Company","Browning","Bruce & Davis","Bruffels","Bruhwiler","Bruno","Bruster","BSA","Budischowsky","Buffalo Armory","Buffaloe","Bullard","Bullseye Arms","Burgsmuller","Burham","Burnham & Bradfield","Burns Machine","Burrow","Bushmaster","Buteo Armory","Butterfield","C.B. Allen","C.G. Haenel","C.S.A.","Cabanas","Cabela's","Caesar Guerini","Calico","Calico Light Weapons Systems","California Tactical","Caltro","Camo Arms","Campagna","Campione","Canada Carbine","Canadian Arms","Canik","Caracal","Carbine","Cardinal","Carl Gustaf","Carlson","Carrera","Carrier","Carter Gun Works","Cartouche","Casa de Armas","Caspian","Casswell","Catamount","Cawdrey","CEE","Cetme","C. Francotte","CH Firearms","Chamelot-Delvigne","Champion","Champion Firearms","Chandler & Latshaw","Chapman","Charlin","Charter Arms","Charworth","Chavot","Cheetah","Cheeta","Cherokee","Chevalier","Chiappa","Chicago Firearms Company","Chylewski","Churchill","Cimarron","Cimiterre","Circle","Citadel","City Gun Works","Civil War","CJ","Claes","Claeys","Clarcin","Clark","Clark Custom Guns","Clarons","Classic Firearms","Clayton","Clay Smith","Clermont","Clevedon","Clifton","Clinch Arms","Clipper","Clogue","Clydesdale","Coastal Arms","Cobra","Cobra Enterprises","Cobra King","Cochran","Cochrane","Cock","Code","Codington","Coenen","Coeur d'Alene","Cogswell & Harrison","Cohn","Coil","Colby","Cole","Coleman","Coles","Colgan Arms","Coligny","Colin","Colins","Coliseum Arms","Collar","Collette","Collins","Collins & Company","Collins Firearms","Collinson","Colochon","Colodny","Colognese","Colomb","Colomba","Colonel Cody","Coloma","Colombia Firearms","Colombo","Colona","Colonial Arms","Colonist","Color","Colorado Arms","Colquhuon","Cols","Colter","Colt","Colts","Coltsfoot","Columbia","Columbia Armory","Columbia Machine Works","Columbian Arms","Columbian Firearms","Columnade","Columbus Firearms","Colvin","Colvin & Company","Colway","Coly","Comanche","Comanche Arms","Comanda","Combar","Combat","Combat Arms","Combat Sports","Combative","Combattants","Combination","Combative Weapons","Combined","Comble","Combo","Combwell","Come","Comeau","Comeco","Comerford","Comfrey","Comfortless","Comfy","Comic","Coming","Comingo","Comins","Cominus","Comio","Comique","Comital","Comite","Comix","Comma","Command","Commandant","Commandeer","Commander","Commanding","Commando","Commando Arms","Commare","Commel","Commemi","Commen","Comment","Commentaries","Commentator","Commeny","Commer","Commerce","Commercial","Commere","Commeris","Commerise","Commet","Commeth","Commian","Commias","Commible","Commic","Commicks","Commid","Commies","Commify","Commigs","Commih","Commii","Commils","Commin","Common","Commonage","Commonality","Commonance","Commonwealth","Commoner","Commones","Commonies","Commonish","Commoning","Commonish","Commonlis","Commonness","Commons","Commonweal","Commonwell","Commony","Commor","Commorancy","Commorancy","Commorant","Commore","Commores","Commorient","Commorise","Commorite","Commorous","Commorrant","Comors","Comort","Comoss","Commotary","Commote","Commotice","Commotient","Commotino","Commotio","Commotion","Commotioner","Commotious","Commotis","Comotose","Commotty","Commotus","Commotyed","Commu","Commual","Commuar","Commuant","Commubate","Communable","Communails","Communalise","Communalism","Communalist","Communalistic","Communality","Communalize","Communally","Communane","Communang","Communant","Communard","Communate","Communated","Communicability","Communicable","Communicably","Communacies","Communacy","Communagine","Communal","Communalisation","Communalise","Communalism","Communalist","Communalistic","Communality","Communalize","Communalized","Communally","Communanals","Communce","Communcers","Communce","Communcher","Communcing","Communcion","Commundan","Commundera","Commundes","Commun","Commundy","Commune","Communead","Communeal","Communeans","Communed","Communedo","Communicales","Communedi","Communeditur","Communednesse","Communee","Communeet","Communeficences","Communegn","Communeid","Communeis","Communela","Communele","Communeli","Communell","Communelly","Communi","Communiants","Communias","Communiata","Communibatur","Communibiliter","Communicability","Communicable","Communicableness","Communicably","Communicacioun","Communicacy","Communicacion","Communicactious","Communicada","Communicade","Communicadi","Communidado","Communicados","Communicador","Communicadorato","Communidi","Communidamente","Communidamentia","Communidantia","Communidal","Communidalia","Communidant","Communidarely","Communidade","Communidatemente","Communidation","Communidator","Communidatoria","Communidatrice","Communidatus","Communidatya","Communidavas","Communidavio","Communidax","Communidaye","Communidazione","Communide","Communidedad","Communidedes","Communidedidad","Communidel","Communidelf","Communidelia","Communideliaque","Communidelhaque","Communidelidad","Communideligencias","Communideliz","Communidella","Communidelle","Communidellies","Communidello","Communidelly","Communidem","Communidement","Communidementia","Communidendas","Communidens","Communident","Communidenta","Communidentalis","Communidentalitate","Communidentallement","Communidentalment","Communidentals","Communidentalter","Communidentante","Communidentar","Communidentaria","Communidentarier","Communidentario","Communidentat","Communidentate","Communidentates","Communidentatic","Communidentatio","Communidentationes","Communidentative","Communidentatively","Communidentativus","Communidentatoria","Communidentatorial","Communidentatorie","Communidentatorily","Communidentatorie","Communidentatrice","Communidentatrium","Communidentatus","Communidentaya","Communidentayas","Communidentazia","Communidentazione","Communidente","Communidentedo","Communidentees","Communidentehue","Communidentei","Communidenteis","Communidentel","Communidentele","Communidentelia","Communidenteliaque","Communidentelhaque","Communidentelidad","Communidenteligencias","Communidenteligentia","Communidenteligentia","Communidenteligentiae","Communidenteligente","Communidenteligentemente","Communidenteligentiae","Communidenteligentiae","Communidenteligentiaram","Communidenteligentiaren","Communidenteligentariam","Communidenteligentiarem","Communidenteligentarem","Communidenteligentiarem","Communidenteligentiarem","Communidenteligentiarem","Communidenteligentiarem","Communidenteligentiarem",...["Connor Arms","Connecticutter","Connecticut Arms","Connecticut Firearms","Conney","Conneys","Connican","Connice","Connick","Connico","Connier","Conniers","Connife","Conniger","Connigger","Connikon","Connill","Connils","Connimen","Connin","Conning","Conningham","Conningham Arms","Connio","Connion","Connions","Connip","Connips","Connir","Connirs","Connis","Connison","Connisons","Connisse","Connisses","Connison","Connita","Connitaire","Connitaires","Connitalia","Connitalis","Connitals","Connitals","Connitals","Connitan","Connitance","Connitane","Connitanes","Connitania","Connitaniac","Connitans","Connitant","Connitantes","Connitantia","Connitantiae","Connitantial","Connitantially","Connitantials","Connitar","Connitare","Connitarer","Connitarere","Connitaria","Connitarial","Connitarialer","Connitarially","Connitarians","Connitariante","Connitariantes","Connitariants","Connitariat","Connitaria","Connitaricate","Connitaricated","Connitaricata","Connitaricated","Connitaricatis","Connitarication","Connitarications","Connitarices","Connitaricie","Connitariciis","Connitaricio","Connitaricios","Connitaricis","Connitaricity","Connitaridad","Connitaridades","Connitaridad","Connitariedad","Connitarieties","Connitariety","Connitarieya","Connitarieyas","Connitarilla","Connitarillas","Connitarillos","Connitarilly","Connitarils","Connitarimmament","Connitariment","Connitarimentals","Connitarimente","Connitariments","Connitarin","Connitarina","Connitariname","Connitarinas","Connitarination","Connitarinator","Connitarinators","Connitarind","Connitarine","Connitarined","Connitarines","Connitarino","Connitarinos","Connitarins","Connitarion","Connitarione","Connitarioni","Connitarionibus","Connitarionis","Connitarire","Connitarirem","Connitarir","Connitarirer","Connitarirs","Connitaris","Connitarise","Connitarised","Connitarises","Connitarising","Connitarism","Connitarisme","Connitaristes","Connitarista","Connitaristas","Connitarit","Connitarita","Connitaritate","Connitaritatis","Connitarite","Connitarite","Connitaritely","Connitaritely","Connitariter","Connitariterium","Connitarities","Connitarity","Connitarize","Connitarized","Connitarizes","Connitarizing","Connitariztion","Connitarizo","Connitarizos",...["Cooker Arms","Cookers","Cookeville","Cookham","Cookhouse","Cookies","Cookier","Cookiers","Cookies","Cookiest","Cooking","Cookings","Cooklanders","Cooklan","Cookland","Cooklands","Cookley","Cookleys","Cooklik","Cookliks","Cookling","Cooklis","Cookly","Cooklys","Cookman","Cookmanly","Cookmare","Cookmares","Cookmark","Cookmarks","Cookmast","Cookmaster","Cookmasters","Cookmeal","Cookmeals","Cookmeat","Cookmeets","Cookmelt","Cookmelts","Cookmen","Cookment","Cookmerchant","Cookmerchants","Cookmercy","Cookmering","Cookmers","Cookmery","Cookmesh","Cookmesher","Cookmeshers","Cookmeshes","Cookmeshing","Cookmeshlot","Cookmeshmen","Cookmeshmen","Cookmeshus","Cookmessage","Cookmessages","Cookmessanger","Cookmessangers","Cookmessiah","Cookmessiahs","Cookmessier","Cookmessiers","Cookmessiers","Cookmessiest","Cookmessily","Cookmessiness","Cookmessing","Cookmession","Cookmessive","Cookmessly","Cookmessness","Cookmessness","Cookmessors","Cookmessories","Cookmessorial","Cookmessorially","Cookmessorleship","Cookmessors","Cookmessrship","Cookmessual","Cookmessually","Cookmessually","Cookmessually","Cookmessuk","Cookmessy","Cookmest","Cookmestal","Cookmestalk","Cookmestalks","Cookmestall","Cookmestalls","Cookmestals","Cookmestane","Cookmestaned","Cookmestanes","Cookmestani","Cookmestania","Cookmestanial","Cookmestanially","Cookmestanism","Cookmestanist","Cookmestanists","Cookmestanize","Cookmestanized","Cookmestanizes","Cookmestanizing","Cookmestaniztion","Cookmestanj","Cookmestank","Cookmestans","Cookmestant","Cookmestante","Cookmestantes","Cookmestants","Cookmestanza","Cookmestanzas","Cookmestao","Cookmestape","Cookmestapes","Cookmestape","Cookmestaqe","Cookmestaq","Cookmestaqey","Cookmestaqey","Cookmestaqr","Cookmestars","Cookmestary","Cookmestase","Cookmestasene","Cookmestases","Cookmestash","Cookmestasia","Cookmestasis","Cookmestass","Cookmestaste","Cookmestastes","Cookmestastey","Cookmestast","Cookmestaste","Cookmestasti","Cookmestastia","Cookmestastical","Cookmestastically","Cookmestasticals","Cookmestastics","Cookmestasticy","Cookmestastid","Cookmestastide","Cookmestastides","Cookmestastidous","Cookmestastidously","Cookmestastidousness","Cookmestastidus","Cookmestastidus","Cookmestastiduum","Cookmestastiduum","Cookmestastie","Cookmestastier","Cookmestastiers","Cookmestastiers","Cookmestastiest","Cookmestastiety","Cookmestasties","Cookmestastiest","Cookmestastify","Cookmestastifyed","Cookmestastifier","Cookmestastifiers","Cookmestastifiing","Cookmestastification","Cookmestastifications","Cookmestastificiently","Cookmestastification","Cookmestastifiualy","Cookmestastifty","Cookmestastify","Cookmestastig","Cookmestastily","Cookmestastilye","Cookmestastilye","Cookmestastilys","Cookmestastiness","Cookmestastining","Cookmestastinly","Cookmestastingly","Cookmestastingly","Cookmestastn","Cookmestastnedness","Cookmestastned","Cookmestastness","Cookmestastness","Cookmestastness","Cookmestastness","Cookmestasto","Cookmestastoom","Cookmestastor","Cookmestastors","Cookmestasty","Cookmestasty",...["CZ","D-County","D.M. Bullard","DA","Dakota","Dakota Arms","Dakota Tactical","Daley","Dallam","Dallas","Dallas Arms","Dallister","Dallis","Dallison","Dallmore","Dalloway","Dalloway Arms","Dalls","Dallsmere","Dallston","Dallus","Dallwell","Dallyingly","Dalon","Dalons","Dalora","Daloraces","Dalorae","Dalores","Dalorias","Daloriales","Daloriant","Daloriant","Dalorically","Daloricals","Dalorically","Daloricalness","Dalorify","Daloriles","Daloriles","Dalorility","Daloriment","Daloriments","Daloriness","Daloriness","Dalorinia","Dalorino","Dalorins","Dalorins","Dalorins","Dalorins","Dalorins","Daloris","Dalorises","Dalorises","Dalorising","Dalorism","Daloriste","Daloristes","Daloristic","Daloristically","Daloristic","Daloristically","Daloristically","Daloristics","Daloristically","Daloristics","Daloristics","Daloristics","Daloristics","Daloristics","Daloristically","Daloristically","Daloristically","Daloristically","Daloristically","Daloristically","Daloristically","Daloristically","Daloristically","Daloristically","Daloristically","Daloristically",...CALIBERS.sort(),"Daniel Defense","Dark Eagle","Darling","Darlington","Darmor","Darmore","Darnall","Darnall Arms","Darnaught","Darnaught Arms","Darnday","Darnders","Darndon","Darneith","Darnell","Darnell Arms","Darnells","Darnelly","Darnenning","Darnens","Darnent","Darnentation","Darneonly","Darneon","Darneously","Darnepius","Darneray","Darneris","Darnerity","Darnerity","Darnesite","Darnesly","Darnesmith","Darnesmith","Darnesmith","Darnesmiths","Darnesmiths","Darnesons","Darnespear","Darnespier","Darnestion","Darnestness","Darnestore","Darnestory","Darnestreet","Darnestric","Darnestril","Darnestrow","Darnestrum","Darnestrus","Darnestus","Darnesty","Darnesty","Darnet","Darnetage","Darnetages","Darnetaker","Darnetakers","Darnetagus","Darnetail","Darnetails","Darnetails","Darnetain","Darnetainer","Darnetainers","Darnetaina","Darnetaines","Darnetains","Darnetais","Darnetaise","Darnetaises","Darnetaken","Darnetaker","Darnetakers","Darnetal","Darnetals","Darnetand","Darnetane","Darnetane","Darnetanes","Darnetani","Darnetanial","Darnetanially","Darnetanism","Darnetanist","Darnetanists","Darnetanize","Darnetanized","Darnetanizes","Darnetanizing","Darnetaniztion","Darnetans","Darnetant","Darnetante","Darnetantes","Darnetants","Darnetanza","Darnetanzas","Darnetao","Darnetape","Darnetapes","Darnetaqe","Darnetaqey","Darnetaqr","Darnetars","Darnetarum","Darnetarum","Darnetarus","Darnetary","Darnetarye","Darnetase","Darnetases","Darnetash","Darnetasia","Darnetasis","Darnetass","Darnetaste","Darnetastes","Darnetastey","Darnetast","Darnetaste","Darnetasti","Darnetastia","Darnetastical","Darnetastically","Darnetasticals","Darnetastics","Darnetasticy",...].sort());
 const CALIBERS = ["9mm",".45 ACP",".40 S&W",".380 ACP","10mm",".22 LR",".223 Rem","5.56 NATO",".308 Win","7.62x39","6.5 Creedmoor",".300 BLK",".30-06",".270 Win","12 Gauge","20 Gauge",".410 Bore",".357 Mag",".38 Special","44 Mag","Other"];
 const FIREARM_TYPES = ["Pistol","Revolver","Rifle","Shotgun","Other"];
 const ATTACHMENT_TYPES = ["Scope","Red Dot","Holster","Grip","Magazine","Light","Sling","Bipod","Suppressor","Other"];
@@ -526,7 +526,7 @@ function Dashboard({ data, go }) {
    ══════════════════════════════════════════════════════ */
 function Firearms({ data, setData, userId }) {
   const { showError } = useError();
-  const EMPTY = { nickname: "", manufacturer: "", model: "", serial: "", caliber: "", type: "", acquired: today(), value: 0, current_value: 0, notes: "", photo_path: "" };
+  const EMPTY = { nickname: "", manufacturer: "", model: "", serial: "", caliber: "", type: "", acquired: today(), value: 0, rounds_fired: 0, notes: "", photo_path: "" };
   const [editId, setEditId] = useState(null);
   const [form, setForm] = useState({ ...EMPTY });
   const firearms = (data.firearms || []).filter(f => !f.for_sale);
@@ -534,13 +534,13 @@ function Firearms({ data, setData, userId }) {
 
   const closeModal = () => { setEditId(null); setForm({ ...EMPTY }); };
   const openEdit = (f) => {
-    setForm({ nickname: f.nickname || "", manufacturer: f.manufacturer || "", model: f.model || "", serial: f.serial || "", caliber: f.caliber || "", type: f.type || "", acquired: f.acquired || "", value: f.value || 0, current_value: f.current_value || 0, notes: f.notes || "", photo_path: f.photo_path || "" });
+    setForm({ nickname: f.nickname || "", manufacturer: f.manufacturer || "", model: f.model || "", serial: f.serial || "", caliber: f.caliber || "", type: f.type || "", acquired: f.acquired || "", value: f.value || 0, rounds_fired: f.rounds_fired || 0, notes: f.notes || "", photo_path: f.photo_path || "" });
     setEditId(f.id);
   };
 
   const save = async () => {
     try {
-      const rec = { nickname: form.nickname, manufacturer: form.manufacturer, model: form.model, serial: form.serial, caliber: form.caliber, type: form.type, acquired: form.acquired || null, value: form.value || 0, current_value: form.current_value || 0, notes: form.notes, photo_path: form.photo_path, user_id: userId };
+      const rec = { nickname: form.nickname, manufacturer: form.manufacturer, model: form.model, serial: form.serial, caliber: form.caliber, type: form.type, acquired: form.acquired || null, value: form.value || 0, rounds_fired: form.rounds_fired || 0, notes: form.notes, photo_path: form.photo_path, user_id: userId };
       let fid = editId;
       if (editId && editId !== "new") {
         const { error } = await supabase.from("firearms").update(rec).eq("id", editId);
@@ -570,8 +570,6 @@ function Firearms({ data, setData, userId }) {
       const { error } = await supabase.from("firearms").update({ for_sale: true, for_sale_listed_at: today() }).eq("id", id);
       if (error) throw error;
       setData(prev => ({ ...prev, firearms: (prev.firearms || []).map(f => f.id === id ? { ...f, for_sale: true, for_sale_listed_at: today() } : f) }));
-      // Reload to update filtered view
-      loadData();
     } catch (e) { showError(e.message, "Firearms > Move to Sale"); }
   };
 
@@ -605,8 +603,8 @@ function Firearms({ data, setData, userId }) {
                 <button className="ghost small" onClick={() => del(f.id)} style={{ padding: "4px 8px", fontSize: 11, color: "var(--danger)" }}>Delete</button>
               </div>
             </div>
-            <div className="card-body"><span><strong>{f.caliber}</strong> {f.type}</span><span className="dim">SN: {f.serial || "—"}</span><span className="dim">Acquired: {f.acquired || "—"}</span></div>
-            <div className="card-foot"><span>{money(f.current_value || f.value)}</span></div>
+            <div className="card-body"><span><strong>{f.caliber}</strong> {f.type}</span><span className="dim">SN: {f.serial || "—"}</span><span className="dim">Acquired: {f.acquired || "—"}</span><span className="dim">Rounds Fired: {f.rounds_fired || 0}</span></div>
+            <div className="card-foot"><span>{money(f.value)}</span></div>
           </div>
         ))}</div>}
       {editId && (
@@ -619,7 +617,7 @@ function Firearms({ data, setData, userId }) {
           <Field label="Serial"><input value={form.serial} onChange={e => setForm({ ...form, serial: e.target.value })} /></Field>
           <Field label="Acquired"><input type="date" value={form.acquired} onChange={e => setForm({ ...form, acquired: e.target.value })} /></Field>
           <Field label="Value"><input type="number" value={form.value} onChange={e => setForm({ ...form, value: parseFloat(e.target.value) || 0 })} /></Field>
-          <Field label="Current Value"><input type="number" value={form.current_value} onChange={e => setForm({ ...form, current_value: parseFloat(e.target.value) || 0 })} /></Field>
+          <Field label="Rounds Fired (prior to adding)"><input type="number" value={form.rounds_fired} onChange={e => setForm({ ...form, rounds_fired: parseInt(e.target.value) || 0 })} /></Field>
           {editId !== "new" && <Field label="Photo"><input type="file" accept="image/*" onChange={e => e.target.files?.[0] && uploadPhoto(e.target.files[0])} /></Field>}
           {editId === "new" && <p style={{ fontSize: 11, color: "var(--dim)", marginBottom: 12 }}>Save first, then upload a photo.</p>}
           <Field label="Notes"><textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} style={{ minHeight: 80 }} /></Field>
@@ -671,8 +669,6 @@ function Attachments({ data, setData, userId }) {
       const { error } = await supabase.from("accessories").update({ for_sale: true, for_sale_listed_at: today() }).eq("id", id);
       if (error) throw error;
       setData(prev => ({ ...prev, accessories: (prev.accessories || []).map(a => a.id === id ? { ...a, for_sale: true, for_sale_listed_at: today() } : a) }));
-      // Reload to update filtered view
-      loadData();
     } catch (e) { showError(e.message, "Attachments > Move to Sale"); }
   };
 
@@ -772,13 +768,19 @@ function Ammunition({ data, setData, userId }) {
 function UpKeep({ data, setData }) {
   const { showError } = useError();
   const firearms = data.firearms || [];
-  const items = [
-    { key: "last_cleaned", label: "Cleaning", freq: 30, icon: Wrench, list: firearms.filter(f => !f.last_cleaned || daysBetween(f.last_cleaned, today()) > 30) },
-    { key: "last_oiled", label: "Oiling", freq: 180, icon: Droplet, list: firearms.filter(f => !f.last_oiled || daysBetween(f.last_oiled, today()) > 180) },
-    { key: "last_torn_down", label: "Tear Down", freq: 365, icon: Hammer, list: firearms.filter(f => !f.last_torn_down || daysBetween(f.last_torn_down, today()) > 365) },
-    { key: "last_optic_check", label: "Optic Check", freq: 180, icon: Eye, list: firearms.filter(f => !f.last_optic_check || daysBetween(f.last_optic_check, today()) > 180) },
-    { key: "last_holster_check", label: "Holster Check", freq: 30, icon: Hand, list: firearms.filter(f => f.has_carry_holster && (!f.last_holster_check || daysBetween(f.last_holster_check, today()) > 30)) },
-  ].sort((a, b) => b.list.length - a.list.length);
+
+  const MAINTENANCE_TASKS = [
+    { key: "last_cleaned", label: "Cleaning", freq: 30, desc: "Deep clean the firearm to remove fouling and debris" },
+    { key: "last_oiled", label: "Oiling", freq: 180, desc: "Apply lubricant to all moving parts and exterior" },
+    { key: "last_torn_down", label: "Tear Down", freq: 365, desc: "Complete disassembly and inspection of all components" },
+    { key: "last_optic_check", label: "Optic Check", freq: 180, desc: "Verify sights/scopes are zeroed and functioning correctly" },
+    { key: "last_holster_check", label: "Holster Check", freq: 30, desc: "Inspect holster for wear, retention, and safety" },
+  ];
+
+  const isOverdue = (firearm, task) => {
+    if (!firearm[task.key]) return true;
+    return daysBetween(firearm[task.key], today()) > task.freq;
+  };
 
   const reset = async (gunId, key) => {
     try {
@@ -790,27 +792,90 @@ function UpKeep({ data, setData }) {
 
   return (
     <div className="tab">
-      {items.map(it => (
-        <div key={it.key} style={{ marginBottom: 24 }}>
-          <h3 style={{ fontFamily: "'Oswald',sans-serif", fontSize: 16, marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
-            <it.icon size={18} style={{ color: "var(--accent)" }} /> {it.label}
-            <span style={{ color: "var(--faint)", fontSize: 12, marginLeft: "auto" }}>({it.list.length} due)</span>
-          </h3>
-          {it.list.length === 0
-            ? <div style={{ padding: 20, color: "var(--dim)", textAlign: "center", background: "var(--panel)", borderRadius: "var(--radius)", border: "1px dashed var(--line)" }}>✓ All up to date</div>
-            : <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(280px,1fr))", gap: 12 }}>
-                {it.list.map(f => (
-                  <div key={f.id} style={{ background: "var(--panel)", border: "1px solid var(--line)", borderRadius: "var(--radius)", padding: 14 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", marginBottom: 10 }}>
-                      <strong style={{ fontSize: 14 }}>{f.nickname || f.manufacturer} {f.model}</strong>
-                      <button className="primary small" onClick={() => reset(f.id, it.key)}><Check size={12} /> Clear</button>
-                    </div>
-                    <span style={{ display: "block", fontSize: 12, color: "var(--dim)" }}>Last: {f[it.key] ? daysBetween(f[it.key], today()) + " days ago" : "Never"}</span>
-                  </div>
-                ))}
-              </div>}
+      {firearms.length === 0 ? (
+        <div style={{ padding: 40, textAlign: "center", color: "var(--dim)" }}>
+          <p>No firearms added yet. Add a firearm to begin maintenance tracking.</p>
         </div>
-      ))}
+      ) : (
+        <>
+          {/* Maintenance Definitions */}
+          <div style={{ marginBottom: 32 }}>
+            <h3 style={{ fontSize: 16, fontFamily: "'Oswald',sans-serif", marginBottom: 16 }}>Maintenance Schedule</h3>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: 12 }}>
+              {MAINTENANCE_TASKS.map(task => (
+                <div key={task.key} style={{ background: "var(--panel)", border: "1px solid var(--line)", borderRadius: "var(--radius)", padding: 14 }}>
+                  <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 6 }}>{task.label}</div>
+                  <div style={{ fontSize: 11, color: "var(--dim)", lineHeight: 1.5, marginBottom: 8 }}>{task.desc}</div>
+                  <div style={{ fontSize: 11, color: "var(--accent)", fontWeight: 600 }}>Every {task.freq} days</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Maintenance Table */}
+          <div style={{ marginBottom: 24 }}>
+            <h3 style={{ fontSize: 16, fontFamily: "'Oswald',sans-serif", marginBottom: 16 }}>Firearm Maintenance Status</h3>
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+                <thead>
+                  <tr style={{ borderBottom: "2px solid var(--line)", background: "var(--panel2)" }}>
+                    <th style={{ padding: 12, textAlign: "left", fontWeight: 600 }}>Firearm</th>
+                    {MAINTENANCE_TASKS.map(task => (
+                      <th key={task.key} style={{ padding: 12, textAlign: "center", fontWeight: 600, minWidth: 120 }}>{task.label}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {firearms.map((firearm, idx) => (
+                    <tr key={firearm.id} style={{ borderBottom: "1px solid var(--line)", background: idx % 2 === 0 ? "var(--panel)" : "transparent" }}>
+                      <td style={{ padding: 12, fontWeight: 500 }}>{firearm.nickname || firearm.manufacturer} {firearm.model}</td>
+                      {MAINTENANCE_TASKS.map(task => {
+                        // Skip holster check for firearms without carry holster
+                        if (task.key === "last_holster_check" && !firearm.has_carry_holster) {
+                          return <td key={task.key} style={{ padding: 12, textAlign: "center", color: "var(--dim)" }}>—</td>;
+                        }
+
+                        const overdue = isOverdue(firearm, task);
+                        const daysAgo = firearm[task.key] ? daysBetween(firearm[task.key], today()) : null;
+
+                        return (
+                          <td key={task.key} style={{ padding: 12, textAlign: "center" }}>
+                            {overdue ? (
+                              <button
+                                onClick={() => reset(firearm.id, task.key)}
+                                style={{
+                                  background: "var(--gold)",
+                                  color: "#000",
+                                  border: "none",
+                                  borderRadius: 4,
+                                  padding: "6px 10px",
+                                  fontSize: 11,
+                                  fontWeight: 600,
+                                  cursor: "pointer",
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  gap: 4,
+                                }}
+                                title={`Last done: ${daysAgo !== null ? daysAgo + ' days ago' : 'Never'}`}
+                              >
+                                ⚠ Due
+                              </button>
+                            ) : (
+                              <span style={{ color: "var(--green)", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 4 }}>
+                                ✓
+                              </span>
+                            )}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -837,6 +902,19 @@ function RangeLog({ data, setData, userId }) {
       } else {
         const { error } = await supabase.from("range_log").insert([rec]).select();
         if (error) throw error;
+        
+        // Update firearm rounds_fired when new log is added
+        if (form.firearm_id) {
+          const firearm = data.firearms.find(f => f.id === form.firearm_id);
+          if (firearm) {
+            const newTotal = (firearm.rounds_fired || 0) + (form.rounds || 0);
+            await supabase.from("firearms").update({ rounds_fired: newTotal }).eq("id", form.firearm_id);
+            setData(prev => ({
+              ...prev,
+              firearms: prev.firearms.map(f => f.id === form.firearm_id ? { ...f, rounds_fired: newTotal } : f)
+            }));
+          }
+        }
       }
       const { data: d } = await supabase.from("range_log").select("*");
       setData(prev => ({ ...prev, rangelog: d || [] }));
@@ -1081,7 +1159,7 @@ function ForSale({ data, setData, userId }) {
           >
             <div className="sale-card" style={{ border: "none", padding: 0 }}>
               <div className="card-head"><div><strong>{f.nickname || f.manufacturer}</strong><span className="dim">{f.model}</span></div></div>
-              <div className="card-body"><span>{f.caliber} {f.type}</span><span className="dim">Asking: {money(f.current_value || f.value)}</span></div>
+              <div className="card-body"><span>{f.caliber} {f.type}</span><span className="dim">Asking: {money(f.value)}</span></div>
             </div>
             <div style={{ color: "var(--faint)", fontSize: 12 }}>Click to view</div>
           </button>
@@ -1116,7 +1194,7 @@ function ForSale({ data, setData, userId }) {
             <div><span style={{ fontSize: 10, color: "var(--faint)", textTransform: "uppercase", letterSpacing: ".5px" }}>Caliber</span><div style={{ fontSize: 13, fontWeight: 600, marginTop: 4 }}>{detailItem.caliber}</div></div>
             <div><span style={{ fontSize: 10, color: "var(--faint)", textTransform: "uppercase", letterSpacing: ".5px" }}>Type</span><div style={{ fontSize: 13, fontWeight: 600, marginTop: 4 }}>{detailItem.type}</div></div>
             <div><span style={{ fontSize: 10, color: "var(--faint)", textTransform: "uppercase", letterSpacing: ".5px" }}>Serial</span><div style={{ fontSize: 13, fontWeight: 600, marginTop: 4 }}>{detailItem.serial || "—"}</div></div>
-            <div><span style={{ fontSize: 10, color: "var(--faint)", textTransform: "uppercase", letterSpacing: ".5px" }}>Asking Price</span><div style={{ fontSize: 13, fontWeight: 600, color: "var(--green)", marginTop: 4 }}>{money(detailItem.current_value || detailItem.value)}</div></div>
+            <div><span style={{ fontSize: 10, color: "var(--faint)", textTransform: "uppercase", letterSpacing: ".5px" }}>Asking Price</span><div style={{ fontSize: 13, fontWeight: 600, color: "var(--green)", marginTop: 4 }}>{money(detailItem.value)}</div></div>
           </div>
           {detailItem.notes && <div style={{ marginBottom: 16 }}><div style={{ fontSize: 11, fontWeight: 700, color: "var(--faint)", textTransform: "uppercase", letterSpacing: ".5px", marginBottom: 6 }}>Notes</div><div style={{ fontSize: 12, color: "var(--text)", padding: 10, background: "var(--panel)", borderRadius: 8, border: "1px solid var(--line)" }}>{detailItem.notes}</div></div>}
           <div style={{ marginTop: 24, paddingTop: 16, borderTop: "1px solid var(--line)" }}>
