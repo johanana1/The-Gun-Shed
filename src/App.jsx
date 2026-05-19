@@ -1218,16 +1218,15 @@ function Tickets({ userId, userEmail, isSuperAdmin }) {
       const { data: counter, error: counterError } = await supabase
         .from("ticket_counter")
         .select("next_number")
-        .eq("id", 1)
-        .single();
+        .eq("id", 1);
       
-      if (counterError) throw counterError;
-      const ticketNum = String(counter.next_number);
+      if (counterError || !counter || counter.length === 0) throw new Error("Ticket counter error");
+      const ticketNum = String(counter[0].next_number);
       
       // Increment counter for next ticket
       const { error: updateError } = await supabase
         .from("ticket_counter")
-        .update({ next_number: counter.next_number + 1 })
+        .update({ next_number: counter[0].next_number + 1 })
         .eq("id", 1);
       
       if (updateError) throw updateError;
@@ -1256,16 +1255,15 @@ function Tickets({ userId, userEmail, isSuperAdmin }) {
       const { data: counter, error: counterError } = await supabase
         .from("ticket_counter")
         .select("next_number")
-        .eq("id", 1)
-        .single();
+        .eq("id", 1);
       
-      if (counterError) throw counterError;
-      const ticketNum = String(counter.next_number);
+      if (counterError || !counter || counter.length === 0) throw new Error("Ticket counter error");
+      const ticketNum = String(counter[0].next_number);
       
       // Increment counter for next ticket
       const { error: updateError } = await supabase
         .from("ticket_counter")
-        .update({ next_number: counter.next_number + 1 })
+        .update({ next_number: counter[0].next_number + 1 })
         .eq("id", 1);
       
       if (updateError) throw updateError;
