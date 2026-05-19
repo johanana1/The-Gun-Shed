@@ -399,19 +399,6 @@ function Stat({ icon: Icon, label, value, accent, onClick }) {
 function Empty({ icon: Icon, label, hint }) {
   return <div className="empty"><Icon size={40} strokeWidth={1.4} /><strong>{label}</strong><span>{hint}</span></div>;
 }
-function PersistentMenu({ items }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className="persistent-menu-wrap" onMouseLeave={() => setOpen(false)}>
-      <button className="icon-btn" onClick={() => setOpen(!open)}><MoreVertical size={15} /></button>
-      {open && <div className="persistent-menu">{items.map((it, i) => (
-        <button key={i} onClick={() => { setOpen(false); it.onClick(); }} className={it.danger ? "danger" : ""}>
-          {it.icon && <it.icon size={13} />} {it.label}
-        </button>
-      ))}</div>}
-    </div>
-  );
-}
 function Toolbar({ query, setQuery, sortKey, setSortKey, sortDir, setSortDir, sortOptions, onAdd, placeholder, addLabel = "Add", children }) {
   return (
     <div className="toolbar">
@@ -612,7 +599,11 @@ function Firearms({ data, setData, userId }) {
             {f.photo_path && <img src={f.photo_path} alt="" style={{ width: "100%", height: 150, objectFit: "cover", borderRadius: 8, marginBottom: 10 }} onError={e => { e.target.style.display = "none"; }} />}
             <div className="card-head">
               <div><strong>{f.nickname || f.manufacturer}</strong><span className="dim">{f.model}</span></div>
-              <PersistentMenu items={[{ label: "Edit", onClick: () => openEdit(f) }, { label: "Move to For Sale", onClick: () => moveToSale(f.id), icon: Tag }, { label: "Delete", onClick: () => del(f.id), danger: true, icon: Trash2 }]} />
+              <div style={{ display: "flex", gap: 4 }}>
+                <button className="ghost small" onClick={() => openEdit(f)} style={{ padding: "4px 8px", fontSize: 11 }}>Edit</button>
+                <button className="ghost small" onClick={() => moveToSale(f.id)} style={{ padding: "4px 8px", fontSize: 11 }}>Sale</button>
+                <button className="ghost small" onClick={() => del(f.id)} style={{ padding: "4px 8px", fontSize: 11, color: "var(--danger)" }}>Delete</button>
+              </div>
             </div>
             <div className="card-body"><span><strong>{f.caliber}</strong> {f.type}</span><span className="dim">SN: {f.serial || "—"}</span><span className="dim">Acquired: {f.acquired || "—"}</span></div>
             <div className="card-foot"><span>{money(f.current_value || f.value)}</span></div>
@@ -691,7 +682,7 @@ function Attachments({ data, setData, userId }) {
       {table.view.length === 0 ? <Empty icon={Package} label="No Attachments" hint="Add your first attachment." /> :
         <div className="card-grid">{table.view.map(a => (
           <div key={a.id} className="addon-card">
-            <div className="card-head"><div><strong>{a.name}</strong><span className="dim">{a.type}</span></div><PersistentMenu items={[{ label: "Edit", onClick: () => { setForm(a); setEditId(a.id); } }, { label: "Move to For Sale", onClick: () => moveToSale(a.id), icon: Tag }, { label: "Delete", onClick: () => del(a.id), danger: true, icon: Trash2 }]} /></div>
+            <div className="card-head"><div><strong>{a.name}</strong><span className="dim">{a.type}</span></div><div style={{ display: "flex", gap: 4 }}><button className="ghost small" onClick={() => { setForm(a); setEditId(a.id); }} style={{ padding: "4px 8px", fontSize: 11 }}>Edit</button><button className="ghost small" onClick={() => moveToSale(a.id)} style={{ padding: "4px 8px", fontSize: 11 }}>Sale</button><button className="ghost small" onClick={() => del(a.id)} style={{ padding: "4px 8px", fontSize: 11, color: "var(--danger)" }}>Delete</button></div></div>
             <div className="card-body"><span>{a.brand || "—"}</span><span className="dim">Qty: {a.quantity || 0}</span><span className="dim">Assigned: {a.assigned_to || "—"}</span></div>
             <div className="card-foot"><span>{money(a.value)}</span></div>
           </div>
@@ -754,7 +745,7 @@ function Ammunition({ data, setData, userId }) {
       {table.view.length === 0 ? <Empty icon={Boxes} label="No Ammunition" hint="Log your ammo." /> :
         <div className="card-grid">{table.view.map(a => (
           <div key={a.id} className="ammo-card">
-            <div className="card-head"><div><strong>{a.caliber}</strong><span className="dim">{a.type}</span></div><PersistentMenu items={[{ label: "Edit", onClick: () => { setForm(a); setEditId(a.id); } }, { label: "Delete", onClick: () => del(a.id), danger: true, icon: Trash2 }]} /></div>
+            <div className="card-head"><div><strong>{a.caliber}</strong><span className="dim">{a.type}</span></div><div style={{ display: "flex", gap: 4 }}><button className="ghost small" onClick={() => { setForm(a); setEditId(a.id); }} style={{ padding: "4px 8px", fontSize: 11 }}>Edit</button><button className="ghost small" onClick={() => del(a.id)} style={{ padding: "4px 8px", fontSize: 11, color: "var(--danger)" }}>Delete</button></div></div>
             <div className="card-body"><span className="dim">{a.brand || "—"} {a.grain || ""}</span><span className="dim">{a.quantity || 0} rounds — {a.location || "—"}</span></div>
             <div className="card-foot"><span>{money(a.value)}</span></div>
           </div>
@@ -870,7 +861,7 @@ function RangeLog({ data, setData, userId }) {
           const gun = (data.firearms || []).find(f => f.id === l.firearm_id);
           return (
             <div key={l.id} className="log-card">
-              <div className="card-head"><div><strong>{gun?.nickname || gun?.manufacturer || "—"}</strong><span className="dim">{l.visit_date}</span></div><PersistentMenu items={[{ label: "Edit", onClick: () => { setForm(l); setEditId(l.id); } }, { label: "Delete", onClick: () => del(l.id), danger: true, icon: Trash2 }]} /></div>
+              <div className="card-head"><div><strong>{gun?.nickname || gun?.manufacturer || "—"}</strong><span className="dim">{l.visit_date}</span></div><div style={{ display: "flex", gap: 4 }}><button className="ghost small" onClick={() => { setForm(l); setEditId(l.id); }} style={{ padding: "4px 8px", fontSize: 11 }}>Edit</button><button className="ghost small" onClick={() => del(l.id)} style={{ padding: "4px 8px", fontSize: 11, color: "var(--danger)" }}>Delete</button></div></div>
               <div className="card-body"><span><strong>{l.rounds || 0}</strong> rounds</span><span className="dim">{l.range_name || "—"}</span></div>
             </div>
           );
@@ -933,7 +924,7 @@ function LoadOut({ data, setData, userId }) {
       {loadouts.length === 0 ? <Empty icon={Backpack} label="No Loadouts" hint="Create a range loadout." /> :
         <div className="card-grid">{loadouts.map(l => (
           <div key={l.id} className="loadout-card">
-            <div className="card-head"><div><strong>{l.name}</strong>{l.favorite && <Star size={14} style={{ fill: "var(--gold)", color: "var(--gold)" }} />}</div><PersistentMenu items={[{ label: "Edit", onClick: () => { setForm(l); setEditId(l.id); } }, { label: "Delete", onClick: () => del(l.id), danger: true, icon: Trash2 }]} /></div>
+            <div className="card-head"><div><strong>{l.name}</strong>{l.favorite && <Star size={14} style={{ fill: "var(--gold)", color: "var(--gold)" }} />}</div><div style={{ display: "flex", gap: 4 }}><button className="ghost small" onClick={() => { setForm(l); setEditId(l.id); }} style={{ padding: "4px 8px", fontSize: 11 }}>Edit</button><button className="ghost small" onClick={() => del(l.id)} style={{ padding: "4px 8px", fontSize: 11, color: "var(--danger)" }}>Delete</button></div></div>
             <div className="card-body"><span className="dim">{(l.items || []).length} items</span><span className="dim">Used {l.use_count || 0}x</span></div>
           </div>
         ))}</div>}
@@ -1016,7 +1007,7 @@ function SuppliesNeeded({ data, setData, userId }) {
             <input type="checkbox" checked={s.purchased} onChange={() => toggle(s.id)} />
             <div style={{ flex: 1 }}><strong>{s.name}</strong><span style={{ display: "block", fontSize: 11, color: "var(--dim)" }}>{s.category}</span></div>
             <span style={{ color: "var(--dim)", fontSize: 12 }}>{money(s.est_cost)}</span>
-            <PersistentMenu items={[{ label: "Edit", onClick: () => { setForm(s); setEditId(s.id); } }, { label: "Delete", onClick: () => del(s.id), danger: true, icon: Trash2 }]} />
+            <div style={{ display: "flex", gap: 4 }}><button className="ghost small" onClick={() => { setForm(s); setEditId(s.id); }} style={{ padding: "4px 8px", fontSize: 11 }}>Edit</button><button className="ghost small" onClick={() => del(s.id)} style={{ padding: "4px 8px", fontSize: 11, color: "var(--danger)" }}>Delete</button></div>
           </div>
         ))}</div>}
       {editId && (
@@ -1223,16 +1214,23 @@ function Tickets({ userId, userEmail, isSuperAdmin }) {
       const title = await generateTicketTitle(manualTicket);
       const history = [{ action: "created", by: userId, by_email: userEmail, at: new Date().toISOString(), notes: "" }];
       
-      // Get next ticket number - query all tickets and find max
-      const { data: allTickets, error: queryError } = await supabase
-        .from("tickets")
-        .select("ticket_number")
-        .order("ticket_number", { ascending: false })
-        .limit(1);
+      // Get and increment ticket counter
+      const { data: counter, error: counterError } = await supabase
+        .from("ticket_counter")
+        .select("next_number")
+        .eq("id", 1)
+        .single();
       
-      if (queryError) throw queryError;
-      const maxNum = allTickets && allTickets.length > 0 ? parseInt(allTickets[0].ticket_number) || 0 : 0;
-      const nextNum = String(maxNum + 1);
+      if (counterError) throw counterError;
+      const ticketNum = String(counter.next_number);
+      
+      // Increment counter for next ticket
+      const { error: updateError } = await supabase
+        .from("ticket_counter")
+        .update({ next_number: counter.next_number + 1 })
+        .eq("id", 1);
+      
+      if (updateError) throw updateError;
       
       const { error } = await supabase.from("tickets").insert([{
         user_id: userId, user_email: userEmail, type: "manual", status: "pending",
@@ -1240,7 +1238,7 @@ function Tickets({ userId, userEmail, isSuperAdmin }) {
         notes: "", testing_notes: "", ticket_history: history,
         test_claimed_by: null, test_claimed_at: null,
         last_touched_by: userId, last_touched_at: new Date().toISOString(),
-        ticket_number: nextNum,
+        ticket_number: ticketNum,
       }]);
       if (error) throw error;
       setManualTicket(null);
@@ -1254,16 +1252,23 @@ function Tickets({ userId, userEmail, isSuperAdmin }) {
     try {
       const history = [{ action: "created", by: userId, by_email: userEmail, at: new Date().toISOString(), notes: "" }];
       
-      // Get next ticket number - query all tickets and find max
-      const { data: allTickets, error: queryError } = await supabase
-        .from("tickets")
-        .select("ticket_number")
-        .order("ticket_number", { ascending: false })
-        .limit(1);
+      // Get and increment ticket counter
+      const { data: counter, error: counterError } = await supabase
+        .from("ticket_counter")
+        .select("next_number")
+        .eq("id", 1)
+        .single();
       
-      if (queryError) throw queryError;
-      const maxNum = allTickets && allTickets.length > 0 ? parseInt(allTickets[0].ticket_number) || 0 : 0;
-      const nextNum = String(maxNum + 1);
+      if (counterError) throw counterError;
+      const ticketNum = String(counter.next_number);
+      
+      // Increment counter for next ticket
+      const { error: updateError } = await supabase
+        .from("ticket_counter")
+        .update({ next_number: counter.next_number + 1 })
+        .eq("id", 1);
+      
+      if (updateError) throw updateError;
       
       // Use first feature title as ticket title
       const title = validItems[0].title;
@@ -1274,7 +1279,7 @@ function Tickets({ userId, userEmail, isSuperAdmin }) {
         admin_notes: "", notes: "", testing_notes: "", ticket_history: history,
         test_claimed_by: null, test_claimed_at: null,
         last_touched_by: userId, last_touched_at: new Date().toISOString(),
-        ticket_number: nextNum,
+        ticket_number: ticketNum,
       }]);
       if (error) throw error;
       setFeatureReq(null);
@@ -1638,7 +1643,7 @@ Provide numbered steps only, no preamble.`;
               {moveStatus === "pending_testing" && (
                 <div style={{ fontSize: 11, color: "var(--dim)", fontStyle: "italic" }}>Testing steps will be auto-generated based on ticket details.</div>
               )}
-              <button className="primary" onClick={updateTicketStatus} style={{ width: "100%" }} disabled={!moveStatus}>Update Ticket</button>
+              <button className="primary" onClick={updateTicketStatus} style={{ width: "100%" }} disabled={!moveStatus || (!moveNotes.trim() && moveStatus !== detailTicket.status)}>Update Ticket</button>
             </div>
           )}
         </Modal>
