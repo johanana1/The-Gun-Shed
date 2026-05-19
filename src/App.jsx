@@ -205,7 +205,32 @@ const daysBetween = (a, b) => Math.round((new Date(b) - new Date(a)) / 86400000)
 const money = (n) => (n || n === 0) ? `$${Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "—";
 
 /* Ticket helpers */
-const generateTicketTitle = (description) => {
+const generateTicketTitle = async (ticket) => {
+  if (!ticket) return "Untitled Ticket";
+  
+  // Try AI generation
+  try {
+    const content = `${ticket.title || ''} ${ticket.description || ''} ${ticket.feature_requests?.map(f => f.title).join(' ') || ''}`;
+    const prompt = `Summarize this in exactly 5 words, max 50 characters total. Just the 5 words, nothing else:\n\n${content}`;
+    
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${import.meta.env.VITE_GEMINI_API_KEY}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { maxOutputTokens: 50 }
+      })
+    });
+
+    const data = await response.json();
+    const title = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || fallbackTitle(ticket.description);
+    return title.slice(0, 50);
+  } catch (e) {
+    return fallbackTitle(ticket.description);
+  }
+};
+
+const fallbackTitle = (description) => {
   if (!description) return "Untitled Ticket";
   const words = description.trim().split(/\s+/).slice(0, 5);
   const cleaned = words.map((w, i) => {
@@ -311,11 +336,11 @@ function ErrorProvider({ children, userId, userEmail, isAdmin }) {
               <p style={{ fontSize: 14, lineHeight: 1.6, marginBottom: 16 }}>{dialog.friendly}</p>
               {isAdmin && (
                 <>
-                  <Field label="Additional Notes (optional)">
+                  <Field label="Additional Notes (Please describe what you were doing that caused the error)">
                     <textarea value={adminNotes} onChange={e => setAdminNotes(e.target.value)} placeholder="Describe what you were doing when this happened..." style={{ minHeight: 80 }} />
                   </Field>
                   <div style={{ display: "flex", gap: 8 }}>
-                    <button className="primary" onClick={closeWithNotes} style={{ flex: 1 }}>
+                    <button className="primary" onClick={closeWithNotes} style={{ flex: 1 }} disabled={!adminNotes.trim()}>
                       <Ticket size={14} /> Submit Ticket with Notes
                     </button>
                     <button className="ghost" onClick={closeAutoTicket}>Close</button>
@@ -1178,7 +1203,7 @@ function Tickets({ userId, userEmail, isSuperAdmin }) {
   const submitManualTicket = async () => {
     if (!manualTicket?.description?.trim()) { showError("Description is required.", "Tickets"); return; }
     try {
-      const title = generateTicketTitle(manualTicket.description);
+      const title = await generateTicketTitle(manualTicket);
       const history = [{ action: "created", by: userId, by_email: userEmail, at: new Date().toISOString(), notes: "" }];
       
       // Get next ticket number - query all tickets and find max
@@ -1223,8 +1248,13 @@ function Tickets({ userId, userEmail, isSuperAdmin }) {
       const maxNum = allTickets && allTickets.length > 0 ? parseInt(allTickets[0].ticket_number) || 0 : 0;
       const nextNum = String(maxNum + 1);
       
-      // Auto-generate title from first feature
-      const title = generateTicketTitle(validItems[0].title);
+      // Auto-generate title from all features
+      const ticketData = { 
+        title: validItems.map(f => f.title).join(' '),
+        description: validItems.map(f => f.description).join(' '),
+        feature_requests: validItems
+      };
+      const title = await generateTicketTitle(ticketData);
       
       const { error } = await supabase.from("tickets").insert([{
         user_id: userId, user_email: userEmail, type: "feature_request", status: "pending",
@@ -1298,18 +1328,23 @@ Provide numbered steps only, no preamble.`;
   const updateTicketStatus = async () => {
     if (!detailTicket || !moveStatus) { showError("Status and notes required.", "Tickets"); return; }
     if (!moveNotes.trim() && moveStatus !== detailTicket.status) { showError("Please add notes when changing status.", "Tickets"); return; }
-    if (moveStatus === "pending_testing" && !testingSteps.trim()) { showError("Please add testing steps for QA.", "Tickets"); return; }
     try {
       let action = "status_changed";
       if (moveStatus === "completed_resolved") action = "testing_passed";
       if (moveStatus === "needs_investigation") action = "testing_failed";
+      
+      // Auto-generate testing steps if moving to pending_testing
+      let stepsToSave = testingSteps;
+      if (moveStatus === "pending_testing" && !stepsToSave) {
+        stepsToSave = await generateTestingStepsAI(detailTicket);
+      }
       
       const history = addHistoryEntry(detailTicket.ticket_history || [], action, userId, userEmail, moveNotes, detailTicket.status, moveStatus);
       const updateData = {
         status: moveStatus, ticket_history: history, last_touched_by: userId, last_touched_at: new Date().toISOString()
       };
       if (moveNotes) updateData.notes = moveNotes;
-      if (moveStatus === "pending_testing" && testingSteps) updateData.testing_steps = testingSteps;
+      if (moveStatus === "pending_testing" && stepsToSave) updateData.testing_steps = stepsToSave;
       
       const { error } = await supabase.from("tickets").update(updateData).eq("id", detailTicket.id);
       if (error) throw error;
@@ -1390,7 +1425,7 @@ Provide numbered steps only, no preamble.`;
                         }}>
                           {t.type === "feature_request" ? "Feature" : t.type === "manual" ? "Manual" : "Error"}
                         </span>
-                        <strong style={{ fontSize: 13 }}>{t.title}</strong>
+                        <strong style={{ fontSize: 13, color: "var(--text)" }}>{t.title}</strong>
                       </div>
                       {t.description && <p style={{ fontSize: 12, color: "var(--dim)", marginBottom: 4 }}>{t.description.slice(0, 80)}</p>}
                       <span style={{ fontSize: 10, color: "var(--faint)" }}>
@@ -1576,12 +1611,7 @@ Provide numbered steps only, no preamble.`;
               </Field>
               <Field label="Notes"><textarea value={moveNotes} onChange={e => setMoveNotes(e.target.value)} placeholder="Add notes for this status change..." style={{ minHeight: 80 }} /></Field>
               {moveStatus === "pending_testing" && (
-                <>
-                  <Field label="Testing Steps (How should QA test this?)">
-                    <textarea value={testingSteps} onChange={e => setTestingSteps(e.target.value)} placeholder="1. Click the login button&#10;2. Enter credentials&#10;3. Verify redirect to dashboard&#10;4. Check user session is valid" style={{ minHeight: 100, fontFamily: "monospace" }} />
-                  </Field>
-                  <button className="ghost" onClick={() => generateTestingStepsAI(detailTicket)} style={{ width: "100%", marginBottom: 12 }}>✨ Auto-Generate Steps with AI</button>
-                </>
+                <div style={{ fontSize: 11, color: "var(--dim)", fontStyle: "italic" }}>Testing steps will be auto-generated based on ticket details.</div>
               )}
               <button className="primary" onClick={updateTicketStatus} style={{ width: "100%" }} disabled={!moveStatus}>Update Ticket</button>
             </div>
