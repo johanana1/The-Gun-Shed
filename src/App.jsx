@@ -1262,8 +1262,7 @@ function Tickets({ userId, userEmail, isSuperAdmin }) {
   };
 
   const submitFeatureRequest = async () => {
-    const validItems = (featureReq?.items || []).filter(i => i.title?.trim());
-    if (validItems.length === 0) { showError("At least one feature title is required.", "Tickets"); return; }
+    if (!featureReq?.title?.trim()) { showError("Feature title is required.", "Tickets"); return; }
     try {
       const history = [{ action: "created", by: userId, by_email: userEmail, at: new Date().toISOString(), notes: "" }];
       
@@ -1287,17 +1286,15 @@ function Tickets({ userId, userEmail, isSuperAdmin }) {
       
       if (updateError) throw new Error("Counter increment failed: " + updateError.message);
       
-      const title = validItems[0].title;
-      
-      // Create ticket with the number we got
+      // Create ticket with single feature
       const { error: insertError } = await supabase.from("tickets").insert([{
         user_id: userId,
         user_email: userEmail,
         type: "feature_request",
         status: "pending",
-        title: title,
-        description: "",
-        feature_requests: validItems,
+        title: featureReq.title,
+        description: featureReq.description || "",
+        feature_requests: [{ title: featureReq.title, description: featureReq.description || "" }],
         admin_notes: "",
         notes: "",
         testing_notes: "",
@@ -1449,7 +1446,7 @@ Provide numbered steps only, no preamble.`;
     <div className="tab">
       <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
         <button className="primary" onClick={() => setManualTicket({ description: "", admin_notes: "" })}><Plus size={14} /> New Ticket</button>
-        {isSuperAdmin && <button className="primary" onClick={() => setFeatureReq({ items: [{ title: "", description: "" }] })}><FileText size={14} /> Feature Request</button>}
+        {isSuperAdmin && <button className="primary" onClick={() => setFeatureReq({ title: "", description: "" })}><FileText size={14} /> Feature Request</button>}
         <div className="spacer" />
         <div className="search-big" style={{ maxWidth: 300 }}><Search size={16} /><input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search # or text..." /></div>
         {TICKET_STATUSES.map(s => (
@@ -1526,18 +1523,8 @@ Provide numbered steps only, no preamble.`;
       {/* Feature Request Modal */}
       {featureReq && isSuperAdmin && (
         <Modal title="Feature Request" onClose={() => setFeatureReq(null)}>
-          {featureReq.items.map((item, i) => (
-            <div key={i} style={{ marginBottom: 16, paddingBottom: 16, borderBottom: i < featureReq.items.length - 1 ? "1px solid var(--line)" : "none" }}>
-              <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 8, color: "var(--accent)" }}>Feature {i + 1}</div>
-              <Field label="Feature Title"><input value={item.title} onChange={e => { const items = [...featureReq.items]; items[i] = { ...items[i], title: e.target.value }; setFeatureReq({ ...featureReq, items }); }} /></Field>
-              <Field label="Description"><textarea value={item.description} onChange={e => { const items = [...featureReq.items]; items[i] = { ...items[i], description: e.target.value }; setFeatureReq({ ...featureReq, items }); }} style={{ minHeight: 60 }} /></Field>
-            </div>
-          ))}
-          {featureReq.items.length < 5 && (
-            <button className="ghost" onClick={() => setFeatureReq({ ...featureReq, items: [...featureReq.items, { title: "", description: "" }] })} style={{ marginBottom: 16, width: "100%" }}>
-              <Plus size={14} /> Add Another Feature ({featureReq.items.length}/5)
-            </button>
-          )}
+          <Field label="Feature Title"><input value={featureReq.title || ""} onChange={e => setFeatureReq({ ...featureReq, title: e.target.value })} /></Field>
+          <Field label="Description"><textarea value={featureReq.description || ""} onChange={e => setFeatureReq({ ...featureReq, description: e.target.value })} style={{ minHeight: 80 }} /></Field>
           <button className="primary" onClick={submitFeatureRequest} style={{ width: "100%" }}>Submit</button>
         </Modal>
       )}
