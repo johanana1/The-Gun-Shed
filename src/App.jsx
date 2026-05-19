@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef, createContext, useContext } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { Target, Package, Boxes, LayoutDashboard, LogOut, Search, Plus, Trash2, X, AlertTriangle, ArrowUpDown, Check, Lock, MapPin, ScrollText, Loader, Wrench, Droplet, HelpCircle, ShoppingCart, Tag, Users, ChevronRight, MoreVertical, Star, Backpack, CheckCircle2, ShieldCheck, Eye, Hand, Zap, Menu, Hammer, Send, Bell, CheckCheck, MessageCircle, Ticket, FileText, AlertCircle } from "lucide-react";
+import { Target, Package, Boxes, LayoutDashboard, LogOut, Search, Plus, Trash2, X, AlertTriangle, ArrowUpDown, Check, Lock, MapPin, ScrollText, Loader, Wrench, Droplet, HelpCircle, ShoppingCart, Tag, Users, ChevronRight, MoreVertical, Star, Backpack, CheckCircle2, ShieldCheck, Eye, Hand, Zap, Menu, Hammer, Send, Bell, CheckCheck, MessageCircle, Ticket, FileText, AlertCircle, TrendingUp, Ammo } from "lucide-react";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -506,16 +506,216 @@ function Login({ onAuth }) {
    ══════════════════════════════════════════════════════ */
 function Dashboard({ data, go }) {
   const firearms = data.firearms || [];
-  const stats = [
-    { icon: Target, label: "Firearms", value: firearms.filter(f => !f.for_sale).length, color: "var(--accent)", action: "firearms" },
-    { icon: MapPin, label: "Range Visits", value: (data.rangelog || []).length, color: "var(--green)", action: "rangelog" },
-    { icon: Package, label: "Attachments", value: (data.accessories || []).length, color: "var(--gold)", action: "attachments" },
-    { icon: Boxes, label: "Ammo Types", value: (data.ammo || []).length, color: "var(--gold)", action: "ammunition" },
+  const tickets = data.tickets || [];
+  const ammo = data.ammo || [];
+  const supplies = data.supplies || [];
+
+  // Stats
+  const activeFirearms = firearms.filter(f => !f.for_sale && !f.sold).length;
+  const forSaleCount = firearms.filter(f => f.for_sale && !f.sold).length;
+  const totalValue = firearms.reduce((sum, f) => sum + (f.value || 0), 0);
+  const totalAmmo = ammo.reduce((sum, a) => sum + (a.quantity || 0), 0);
+  const totalRoundsFired = firearms.reduce((sum, f) => sum + (f.rounds_fired || 0), 0);
+  const rangeVisits = (data.rangelog || []).length;
+
+  // Pending tickets
+  const pendingTickets = tickets.filter(t => ["pending", "working", "pending_testing"].includes(t.status)).length;
+  const failedTests = tickets.filter(t => t.status === "completed_rejected").length;
+
+  // Upkeep overdue count
+  const MAINTENANCE_TASKS = [
+    { key: "last_cleaned", freq: 30 },
+    { key: "last_oiled", freq: 180 },
+    { key: "last_torn_down", freq: 365 },
+    { key: "last_optic_check", freq: 180 },
+    { key: "last_holster_check", freq: 30 },
   ];
+
+  const isOverdue = (firearm, task) => {
+    if (!firearm[task.key]) return true;
+    return daysBetween(firearm[task.key], today()) > task.freq;
+  };
+
+  let overdueCount = 0;
+  firearms.forEach(f => {
+    MAINTENANCE_TASKS.forEach(task => {
+      if (task.key === "last_holster_check" && !f.has_carry_holster) return;
+      if (isOverdue(f, task)) overdueCount++;
+    });
+  });
+
+  // Supplies needed
+  const suppliesNeeded = supplies.filter(s => !s.purchased).length;
+
+  // Damaged firearms
+  const damagedFirearms = firearms.filter(f => f.damaged).length;
+
+  // Most used caliber
+  const caliberStats = {};
+  firearms.forEach(f => {
+    caliberStats[f.caliber] = (caliberStats[f.caliber] || 0) + 1;
+  });
+  const topCaliber = Object.entries(caliberStats).sort((a, b) => b[1] - a[1])[0];
+
+  const stats = [
+    { icon: Target, label: "Active Firearms", value: activeFirearms, color: "var(--accent)", action: "firearms", sub: forSaleCount > 0 ? `${forSaleCount} for sale` : "all secure" },
+    { icon: Zap, label: "Pending Tasks", value: pendingTickets, color: pendingTickets > 0 ? "var(--danger)" : "var(--green)", action: "tickets", sub: failedTests > 0 ? `${failedTests} failed tests` : "on track" },
+    { icon: Wrench, label: "Maintenance Due", value: overdueCount, color: overdueCount > 0 ? "var(--gold)" : "var(--green)", action: "upkeep", sub: `across ${activeFirearms} firearms` },
+    { icon: Ammo, label: "Total Ammo", value: totalAmmo, color: "var(--info)", action: "ammunition", sub: `${ammo.length} calibers` },
+    { icon: TrendingUp, label: "Collection Value", value: `$${totalValue.toLocaleString()}`, color: "var(--green)", action: "firearms", sub: `${totalRoundsFired} rounds fired` },
+    { icon: AlertCircle, label: "Action Items", value: (overdueCount > 0 ? 1 : 0) + suppliesNeeded + damagedFirearms, color: (overdueCount > 0 || suppliesNeeded > 0 || damagedFirearms > 0) ? "var(--danger)" : "var(--green)", action: "upkeep", sub: `${suppliesNeeded} supplies + ${damagedFirearms} damaged` },
+  ];
+
   return (
     <div className="tab">
-      <div className="dashboard-welcome"><h2>Welcome back! 🎯</h2><p>Your firearms are secure. Let's keep them in top shape.</p></div>
-      <div className="dashboard-grid">{stats.map(s => <Stat key={s.label} icon={s.icon} label={s.label} value={s.value} accent={s.color} onClick={() => go(s.action)} />)}</div>
+      <div className="dashboard-welcome">
+        <h2>Welcome back! 🎯</h2>
+        <p>You have {activeFirearms} firearms in your collection. {overdueCount > 0 ? `⚠ ${overdueCount} maintenance items due.` : "All systems green."}</p>
+      </div>
+
+      {/* Stats Grid */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16, marginBottom: 32 }}>
+        {stats.map(s => (
+          <div
+            key={s.label}
+            onClick={() => go(s.action)}
+            style={{
+              background: "var(--panel)",
+              border: "1px solid var(--line)",
+              borderRadius: "var(--radius)",
+              padding: 18,
+              cursor: "pointer",
+              transition: "all 0.2s",
+              display: "flex",
+              flexDirection: "column",
+              gap: 8,
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.transform = "translateY(-2px)"}
+            onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}
+          >
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <s.icon size={20} style={{ color: s.color }} />
+              <span style={{ fontSize: 24, fontWeight: 700, color: s.color }}>{s.value}</span>
+            </div>
+            <div style={{ fontWeight: 600, fontSize: 13 }}>{s.label}</div>
+            <div style={{ fontSize: 11, color: "var(--dim)" }}>{s.sub}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Quick Actions */}
+      <div style={{ marginBottom: 32 }}>
+        <h3 style={{ fontSize: 14, fontFamily: "'Oswald',sans-serif", marginBottom: 12, color: "var(--text)" }}>Quick Actions</h3>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          {overdueCount > 0 && (
+            <button
+              onClick={() => go("upkeep")}
+              style={{
+                background: "var(--gold)",
+                color: "#000",
+                border: "none",
+                borderRadius: 4,
+                padding: "8px 14px",
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+            >
+              ⚠ {overdueCount} Maintenance Tasks
+            </button>
+          )}
+          {suppliesNeeded > 0 && (
+            <button
+              onClick={() => go("supplies")}
+              style={{
+                background: "var(--accent)",
+                color: "#fff",
+                border: "none",
+                borderRadius: 4,
+                padding: "8px 14px",
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+            >
+              📋 {suppliesNeeded} Supplies Needed
+            </button>
+          )}
+          {damagedFirearms > 0 && (
+            <button
+              onClick={() => go("firearms")}
+              style={{
+                background: "var(--danger)",
+                color: "#fff",
+                border: "none",
+                borderRadius: 4,
+                padding: "8px 14px",
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+            >
+              🚨 {damagedFirearms} Damaged
+            </button>
+          )}
+          {pendingTickets > 0 && (
+            <button
+              onClick={() => go("tickets")}
+              style={{
+                background: "var(--info)",
+                color: "#fff",
+                border: "none",
+                borderRadius: 4,
+                padding: "8px 14px",
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+            >
+              🔧 {pendingTickets} Support Tickets
+            </button>
+          )}
+          <button
+            onClick={() => go("rangelog")}
+            style={{
+              background: "var(--panel)",
+              color: "var(--text)",
+              border: "1px solid var(--line)",
+              borderRadius: 4,
+              padding: "8px 14px",
+              fontSize: 12,
+              fontWeight: 600,
+              cursor: "pointer",
+            }}
+          >
+            📊 Log Range Visit ({rangeVisits} total)
+          </button>
+        </div>
+      </div>
+
+      {/* Collection Insights */}
+      {topCaliber && (
+        <div style={{ background: "var(--panel)", border: "1px solid var(--line)", borderRadius: "var(--radius)", padding: 18, marginBottom: 32 }}>
+          <h3 style={{ fontSize: 14, fontFamily: "'Oswald',sans-serif", marginBottom: 12 }}>Collection Insights</h3>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 14 }}>
+            <div>
+              <span style={{ fontSize: 11, color: "var(--dim)" }}>Top Caliber</span>
+              <div style={{ fontSize: 18, fontWeight: 700, color: "var(--accent)", marginTop: 4 }}>{topCaliber[0]}</div>
+              <span style={{ fontSize: 11, color: "var(--dim)" }}>{topCaliber[1]} firearms</span>
+            </div>
+            <div>
+              <span style={{ fontSize: 11, color: "var(--dim)" }}>Collection Value</span>
+              <div style={{ fontSize: 18, fontWeight: 700, color: "var(--green)", marginTop: 4 }}>${totalValue.toLocaleString()}</div>
+              <span style={{ fontSize: 11, color: "var(--dim)" }}>across {activeFirearms} guns</span>
+            </div>
+            <div>
+              <span style={{ fontSize: 11, color: "var(--dim)" }}>Range Activity</span>
+              <div style={{ fontSize: 18, fontWeight: 700, color: "var(--info)", marginTop: 4 }}>{totalRoundsFired.toLocaleString()}</div>
+              <span style={{ fontSize: 11, color: "var(--dim)" }}>rounds downrange</span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
