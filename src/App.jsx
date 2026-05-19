@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef, createContext, useContext } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { Target, Package, Boxes, LayoutDashboard, LogOut, Search, Plus, Trash2, X, AlertTriangle, ArrowUpDown, Check, Lock, MapPin, ScrollText, Loader, Wrench, Droplet, HelpCircle, ShoppingCart, Tag, Users, ChevronRight, MoreVertical, Star, Backpack, CheckCircle2, ShieldCheck, Eye, Hand, Zap, Menu, Hammer, Send, Bell, CheckCheck, MessageCircle, Ticket, FileText, AlertCircle, TrendingUp, Ammo } from "lucide-react";
+import { Target, Package, Boxes, LayoutDashboard, LogOut, Search, Plus, Trash2, X, AlertTriangle, ArrowUpDown, Check, Lock, MapPin, ScrollText, Loader, Wrench, Droplet, HelpCircle, ShoppingCart, Tag, Users, ChevronRight, MoreVertical, Star, Backpack, CheckCircle2, ShieldCheck, Eye, Hand, Zap, Menu, Hammer, Send, Bell, CheckCheck, MessageCircle, Ticket, FileText, AlertCircle, TrendingUp } from "lucide-react";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -561,7 +561,7 @@ function Dashboard({ data, go }) {
     { icon: Target, label: "Active Firearms", value: activeFirearms, color: "var(--accent)", action: "firearms", sub: forSaleCount > 0 ? `${forSaleCount} for sale` : "all secure" },
     { icon: Zap, label: "Pending Tasks", value: pendingTickets, color: pendingTickets > 0 ? "var(--danger)" : "var(--green)", action: "tickets", sub: failedTests > 0 ? `${failedTests} failed tests` : "on track" },
     { icon: Wrench, label: "Maintenance Due", value: overdueCount, color: overdueCount > 0 ? "var(--gold)" : "var(--green)", action: "upkeep", sub: `across ${activeFirearms} firearms` },
-    { icon: Ammo, label: "Total Ammo", value: totalAmmo, color: "var(--info)", action: "ammunition", sub: `${ammo.length} calibers` },
+    { icon: Boxes, label: "Total Ammo", value: totalAmmo, color: "var(--info)", action: "ammunition", sub: `${ammo.length} calibers` },
     { icon: TrendingUp, label: "Collection Value", value: `$${totalValue.toLocaleString()}`, color: "var(--green)", action: "firearms", sub: `${totalRoundsFired} rounds fired` },
     { icon: AlertCircle, label: "Action Items", value: (overdueCount > 0 ? 1 : 0) + suppliesNeeded + damagedFirearms, color: (overdueCount > 0 || suppliesNeeded > 0 || damagedFirearms > 0) ? "var(--danger)" : "var(--green)", action: "upkeep", sub: `${suppliesNeeded} supplies + ${damagedFirearms} damaged` },
   ];
