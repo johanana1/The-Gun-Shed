@@ -784,12 +784,17 @@ function UpKeep({ data, setData }) {
     return daysBetween(firearm[task.key], today()) > task.freq;
   };
 
+  const getLastDate = (firearm, task) => {
+    if (firearm[task.key]) return firearm[task.key];
+    return firearm.created_at ? firearm.created_at.split('T')[0] : "Unknown";
+  };
+
   const reset = async (gunId, key) => {
     try {
       const { error } = await supabase.from("firearms").update({ [key]: today() }).eq("id", gunId);
       if (error) throw error;
       setData(prev => ({ ...prev, firearms: (prev.firearms || []).map(f => f.id === gunId ? { ...f, [key]: today() } : f) }));
-    } catch (e) { showError(e.message, "Up-Keep > Reset"); }
+    } catch (e) { showError(e.message, "Up-Keep > Mark Complete"); }
   };
 
   return (
@@ -800,15 +805,17 @@ function UpKeep({ data, setData }) {
         </div>
       ) : (
         <>
-          {/* Maintenance Definitions */}
-          <div style={{ marginBottom: 32 }}>
-            <h3 style={{ fontSize: 16, fontFamily: "'Oswald',sans-serif", marginBottom: 16 }}>Maintenance Schedule</h3>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: 12 }}>
+          {/* Maintenance Definitions - Simple List */}
+          <div style={{ marginBottom: 40 }}>
+            <h3 style={{ fontSize: 16, fontFamily: "'Oswald',sans-serif", marginBottom: 20 }}>Maintenance Tasks</h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               {MAINTENANCE_TASKS.map(task => (
-                <div key={task.key} style={{ background: "var(--panel)", border: "1px solid var(--line)", borderRadius: "var(--radius)", padding: 14 }}>
-                  <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 6 }}>{task.label}</div>
-                  <div style={{ fontSize: 11, color: "var(--dim)", lineHeight: 1.5, marginBottom: 8 }}>{task.desc}</div>
-                  <div style={{ fontSize: 11, color: "var(--accent)", fontWeight: 600 }}>Every {task.freq} days</div>
+                <div key={task.key} style={{ paddingBottom: 12, borderBottom: "1px solid var(--line)" }}>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 6 }}>
+                    <strong style={{ fontSize: 14 }}>{task.label}</strong>
+                    <span style={{ fontSize: 11, color: "var(--accent)", fontWeight: 600 }}>Every {task.freq} days</span>
+                  </div>
+                  <div style={{ fontSize: 12, color: "var(--dim)", lineHeight: 1.6 }}>{task.desc}</div>
                 </div>
               ))}
             </div>
@@ -823,7 +830,7 @@ function UpKeep({ data, setData }) {
                   <tr style={{ borderBottom: "2px solid var(--line)", background: "var(--panel2)" }}>
                     <th style={{ padding: 12, textAlign: "left", fontWeight: 600 }}>Firearm</th>
                     {MAINTENANCE_TASKS.map(task => (
-                      <th key={task.key} style={{ padding: 12, textAlign: "center", fontWeight: 600, minWidth: 120 }}>{task.label}</th>
+                      <th key={task.key} style={{ padding: 12, textAlign: "center", fontWeight: 600, minWidth: 140 }}>{task.label}</th>
                     ))}
                   </tr>
                 </thead>
@@ -834,11 +841,11 @@ function UpKeep({ data, setData }) {
                       {MAINTENANCE_TASKS.map(task => {
                         // Skip holster check for firearms without carry holster
                         if (task.key === "last_holster_check" && !firearm.has_carry_holster) {
-                          return <td key={task.key} style={{ padding: 12, textAlign: "center", color: "var(--dim)" }}>—</td>;
+                          return <td key={task.key} style={{ padding: 12, textAlign: "center", color: "var(--dim)", fontSize: 11 }}>N/A</td>;
                         }
 
                         const overdue = isOverdue(firearm, task);
-                        const daysAgo = firearm[task.key] ? daysBetween(firearm[task.key], today()) : null;
+                        const lastDate = getLastDate(firearm, task);
 
                         return (
                           <td key={task.key} style={{ padding: 12, textAlign: "center" }}>
@@ -850,22 +857,26 @@ function UpKeep({ data, setData }) {
                                   color: "#000",
                                   border: "none",
                                   borderRadius: 4,
-                                  padding: "6px 10px",
+                                  padding: "6px 12px",
                                   fontSize: 11,
                                   fontWeight: 600,
                                   cursor: "pointer",
                                   display: "inline-flex",
                                   alignItems: "center",
                                   gap: 4,
+                                  transition: "all 0.2s",
                                 }}
-                                title={`Last done: ${daysAgo !== null ? daysAgo + ' days ago' : 'Never'}`}
+                                onMouseEnter={(e) => e.target.style.opacity = "0.8"}
+                                onMouseLeave={(e) => e.target.style.opacity = "1"}
+                                title={`Last done: ${lastDate}. Click to mark complete today.`}
                               >
-                                ⚠ Due
+                                ⚠ Mark Complete
                               </button>
                             ) : (
-                              <span style={{ color: "var(--green)", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 4 }}>
-                                ✓
-                              </span>
+                              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+                                <span style={{ color: "var(--green)", fontWeight: 600, fontSize: 14 }}>✓</span>
+                                <span style={{ color: "var(--dim)", fontSize: 10 }}>{lastDate}</span>
+                              </div>
                             )}
                           </td>
                         );
