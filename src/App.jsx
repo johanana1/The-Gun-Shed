@@ -142,13 +142,6 @@ const CHANGELOG = [
     { type: "added", text: "Usage counter." },
     { type: "added", text: "Notes field for loadout configurations." },
   ]},
-  { version: "1.6.0", date: "2026-05-19", tag: "", title: "[In Development] Safe Audit, Gun Parts, Insurance", changes: [
-    { type: "added", text: "Safe Audit: 3-month rolling timer for account-wide firearm audits." },
-    { type: "added", text: "Gun Parts tab for tracking modular accessories and part configurations." },
-    { type: "added", text: "Insurance Manifest view with coverage details." },
-    { type: "added", text: "Email digest automation (weekly/monthly summaries)." },
-    { type: "added", text: "Last range name displayed on firearm cards." },
-  ]},
   { version: "1.5.5", date: "2026-05-19", tag: "", title: "Dashboard Overhaul & Up-Keep Improvements", changes: [
     { type: "added", text: "Rebuilt Dashboard with 6 comprehensive stat cards." },
     { type: "added", text: "Dashboard pending tasks widget with ticket status tracking." },
@@ -171,6 +164,13 @@ const CHANGELOG = [
     { type: "added", text: "Claim/unclaim functionality for pending_testing tickets." },
     { type: "added", text: "Notes required to change ticket status (validation)." },
     { type: "improved", text: "3-dot menu replaced with inline Edit | Sale | Delete buttons across all tabs." },
+  ]},
+  { version: "1.6.0", date: "2026-05-19", tag: "", title: "[In Development] Safe Audit, Gun Parts, Insurance", changes: [
+    { type: "added", text: "Safe Audit: 3-month rolling timer for account-wide firearm audits." },
+    { type: "added", text: "Gun Parts tab for tracking modular accessories and part configurations." },
+    { type: "added", text: "Insurance Manifest view with coverage details." },
+    { type: "added", text: "Email digest automation (weekly/monthly summaries)." },
+    { type: "added", text: "Last range name displayed on firearm cards." },
   ]},
   { version: "1.5.4", date: "2026-05-19", tag: "", title: "Ticket System Enhancements", changes: [
     { type: "added", text: "Ticket numbering system with sequential counter." },
