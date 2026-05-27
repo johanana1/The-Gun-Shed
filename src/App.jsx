@@ -65,11 +65,25 @@ function friendlyMessage(raw) {
    ──────────────────────────────────────────────────────────────────────────────── */
 const CHANGELOG = [
   { version: "1.6.0", date: "2026-05-19", tag: "", title: "[In Development] Safe Audit, Gun Parts, Insurance", changes: [
-    { type: "added", text: "Safe Audit: 3-month rolling timer for account-wide firearm audits." },
     { type: "added", text: "Gun Parts tab for tracking modular accessories and part configurations." },
-    { type: "added", text: "Insurance Manifest view with coverage details." },
-    { type: "added", text: "Email digest automation (weekly/monthly summaries)." },
-    { type: "added", text: "Last range name displayed on firearm cards." },
+    { type: "added", text: "Insurance Manifest view with complete printable manifest." },
+    { type: "added", text: "Safe Audit: 3-month rolling timer for account-wide firearm audits." },
+    { type: "improved", text: "Dashboard redesigned with hero banner and engaging layout." },
+    { type: "improved", text: "Modern section headers with statistics added to all tabs." },
+    { type: "improved", text: "Stat cards redesigned with hover effects and better visual hierarchy." },
+    { type: "added", text: "Alert banner for action items (maintenance, supplies, damaged items)." },
+    { type: "added", text: "Highlight cards with bordered design and emoji icons." },
+    { type: "added", text: "Quick action grid with 6 main functions." },
+    { type: "improved", text: "SectionHeader component for consistent branding across tabs." },
+    { type: "improved", text: "ModernCard component with hover animations." },
+    { type: "improved", text: "StatsBar component for quick metrics display." },
+    { type: "improved", text: "Firearms tab with modern header showing active/for sale/value stats." },
+    { type: "improved", text: "Attachments tab with modern header showing total items and value." },
+    { type: "improved", text: "Ammunition tab with modern header showing caliber count and rounds." },
+    { type: "improved", text: "Overall visual design inspired by modern e-commerce (GameStop-style)." },
+    { type: "improved", text: "Better color contrast and button affordance across all sections." },
+    { type: "added", text: "Email digest automation (weekly/monthly summaries) - coming 1.6.1." },
+    { type: "added", text: "Last range name displayed on firearm cards - coming 1.6.1." },
   ]},
   { version: "1.5.5", date: "2026-05-19", tag: "", title: "Dashboard Overhaul & Up-Keep Improvements", changes: [
     { type: "added", text: "Rebuilt Dashboard with 6 comprehensive stat cards." },
@@ -534,25 +548,21 @@ function Login({ onAuth }) {
 /* ══════════════════════════════════════════════════════
    DASHBOARD
    ══════════════════════════════════════════════════════ */
+
 function Dashboard({ data, go }) {
   const firearms = data.firearms || [];
   const tickets = data.tickets || [];
   const ammo = data.ammo || [];
   const supplies = data.supplies || [];
 
-  // Stats
   const activeFirearms = firearms.filter(f => !f.for_sale && !f.sold).length;
   const forSaleCount = firearms.filter(f => f.for_sale && !f.sold).length;
   const totalValue = firearms.reduce((sum, f) => sum + (f.value || 0), 0);
   const totalAmmo = ammo.reduce((sum, a) => sum + (a.quantity || 0), 0);
   const totalRoundsFired = firearms.reduce((sum, f) => sum + (f.rounds_fired || 0), 0);
   const rangeVisits = (data.rangelog || []).length;
-
-  // Pending tickets
   const pendingTickets = tickets.filter(t => ["pending", "working", "pending_testing"].includes(t.status)).length;
-  const failedTests = tickets.filter(t => t.status === "completed_rejected").length;
 
-  // Upkeep overdue count
   const MAINTENANCE_TASKS = [
     { key: "last_cleaned", freq: 30 },
     { key: "last_oiled", freq: 180 },
@@ -574,204 +584,222 @@ function Dashboard({ data, go }) {
     });
   });
 
-  // Supplies needed
   const suppliesNeeded = supplies.filter(s => !s.purchased).length;
-
-  // Damaged firearms
   const damagedFirearms = firearms.filter(f => f.damaged).length;
-
-  // Most used caliber
-  const caliberStats = {};
-  firearms.forEach(f => {
-    caliberStats[f.caliber] = (caliberStats[f.caliber] || 0) + 1;
-  });
-  const topCaliber = Object.entries(caliberStats).sort((a, b) => b[1] - a[1])[0];
-
-  const stats = [
-    { icon: Target, label: "Active Firearms", value: activeFirearms, color: "var(--accent)", action: "firearms", sub: forSaleCount > 0 ? `${forSaleCount} for sale` : "all secure" },
-    { icon: Zap, label: "Pending Tasks", value: pendingTickets, color: pendingTickets > 0 ? "var(--danger)" : "var(--green)", action: "tickets", sub: failedTests > 0 ? `${failedTests} failed tests` : "on track" },
-    { icon: Wrench, label: "Maintenance Due", value: overdueCount, color: overdueCount > 0 ? "var(--gold)" : "var(--green)", action: "upkeep", sub: `across ${activeFirearms} firearms` },
-    { icon: Boxes, label: "Total Ammo", value: totalAmmo, color: "var(--info)", action: "ammunition", sub: `${ammo.length} calibers` },
-    { icon: TrendingUp, label: "Collection Value", value: `$${totalValue.toLocaleString()}`, color: "var(--green)", action: "firearms", sub: `${totalRoundsFired} rounds fired` },
-    { icon: AlertCircle, label: "Action Items", value: (overdueCount > 0 ? 1 : 0) + suppliesNeeded + damagedFirearms, color: (overdueCount > 0 || suppliesNeeded > 0 || damagedFirearms > 0) ? "var(--danger)" : "var(--green)", action: "upkeep", sub: `${suppliesNeeded} supplies + ${damagedFirearms} damaged` },
-  ];
 
   return (
     <div className="tab">
-      <div className="dashboard-welcome">
-        <h2>Welcome back! 🎯</h2>
-        <p>You have {activeFirearms} firearms in your collection. {overdueCount > 0 ? `⚠ ${overdueCount} maintenance items due.` : "All systems green."}</p>
-      </div>
-
-      {/* Stats Grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16, marginBottom: 32 }}>
-        {stats.map(s => (
-          <div
-            key={s.label}
-            onClick={() => go(s.action)}
-            style={{
-              background: "var(--panel)",
-              border: "1px solid var(--line)",
-              borderRadius: "var(--radius)",
-              padding: 18,
-              cursor: "pointer",
-              transition: "all 0.2s",
-              display: "flex",
-              flexDirection: "column",
-              gap: 8,
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.transform = "translateY(-2px)"}
-            onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}
-          >
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <s.icon size={20} style={{ color: s.color }} />
-              <span style={{ fontSize: 24, fontWeight: 700, color: s.color }}>{s.value}</span>
-            </div>
-            <div style={{ fontWeight: 600, fontSize: 13 }}>{s.label}</div>
-            <div style={{ fontSize: 11, color: "var(--dim)" }}>{s.sub}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Quick Actions */}
+      {/* Welcome Header */}
       <div style={{ marginBottom: 32 }}>
-        <h3 style={{ fontSize: 14, fontFamily: "'Oswald',sans-serif", marginBottom: 12, color: "var(--text)" }}>Quick Actions</h3>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          {overdueCount > 0 && (
-            <button
-              onClick={() => go("upkeep")}
-              style={{
-                background: "var(--gold)",
-                color: "#000",
-                border: "none",
-                borderRadius: 4,
-                padding: "8px 14px",
-                fontSize: 12,
-                fontWeight: 600,
-                cursor: "pointer",
-              }}
-            >
-              ⚠ {overdueCount} Maintenance Tasks
-            </button>
-          )}
-          {suppliesNeeded > 0 && (
-            <button
-              onClick={() => go("supplies")}
-              style={{
-                background: "var(--accent)",
-                color: "#fff",
-                border: "none",
-                borderRadius: 4,
-                padding: "8px 14px",
-                fontSize: 12,
-                fontWeight: 600,
-                cursor: "pointer",
-              }}
-            >
-              📋 {suppliesNeeded} Supplies Needed
-            </button>
-          )}
-          {damagedFirearms > 0 && (
-            <button
-              onClick={() => go("firearms")}
-              style={{
-                background: "var(--danger)",
-                color: "#fff",
-                border: "none",
-                borderRadius: 4,
-                padding: "8px 14px",
-                fontSize: 12,
-                fontWeight: 600,
-                cursor: "pointer",
-              }}
-            >
-              🚨 {damagedFirearms} Damaged
-            </button>
-          )}
-          {pendingTickets > 0 && (
-            <button
-              onClick={() => go("tickets")}
-              style={{
-                background: "var(--info)",
-                color: "#fff",
-                border: "none",
-                borderRadius: 4,
-                padding: "8px 14px",
-                fontSize: 12,
-                fontWeight: 600,
-                cursor: "pointer",
-              }}
-            >
-              🔧 {pendingTickets} Support Tickets
-            </button>
-          )}
-          <button
-            onClick={() => go("rangelog")}
-            style={{
-              background: "var(--panel)",
-              color: "var(--text)",
-              border: "1px solid var(--line)",
-              borderRadius: 4,
-              padding: "8px 14px",
-              fontSize: 12,
-              fontWeight: 600,
-              cursor: "pointer",
-            }}
-          >
-            📊 Log Range Visit ({rangeVisits} total)
-          </button>
+        <h1 style={{ fontSize: 32, fontFamily: "'Oswald',sans-serif", fontWeight: 700, marginBottom: 8 }}>The Gun Shed</h1>
+        <p style={{ fontSize: 14, color: "var(--dim)", maxWidth: 500 }}>Professional firearms inventory and maintenance management. {activeFirearms} firearms tracked, {totalRoundsFired.toLocaleString()} rounds downrange.</p>
+      </div>
+
+      {/* Primary Stats - Clean and Simple */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 16, marginBottom: 40 }}>
+        <div style={{ background: "var(--panel)", border: "1px solid var(--line)", borderRadius: "var(--radius)", padding: 20, cursor: "pointer", transition: "all 0.2s" }}
+          onClick={() => go("firearms")}
+          onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.borderColor = "var(--accent)"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.borderColor = "var(--line)"; }}>
+          <div style={{ fontSize: 11, color: "var(--dim)", marginBottom: 8, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5 }}>Active Firearms</div>
+          <div style={{ fontSize: 32, fontWeight: 700, color: "var(--accent)", marginBottom: 4 }}>{activeFirearms}</div>
+          <div style={{ fontSize: 11, color: "var(--faint)" }}>${(totalValue / 1000).toFixed(1)}k collection</div>
+        </div>
+
+        <div style={{ background: "var(--panel)", border: "1px solid var(--line)", borderRadius: "var(--radius)", padding: 20, cursor: "pointer", transition: "all 0.2s" }}
+          onClick={() => go("ammunition")}
+          onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.borderColor = "var(--accent)"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.borderColor = "var(--line)"; }}>
+          <div style={{ fontSize: 11, color: "var(--dim)", marginBottom: 8, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5 }}>Ammunition</div>
+          <div style={{ fontSize: 32, fontWeight: 700, color: "var(--accent)", marginBottom: 4 }}>{totalAmmo.toLocaleString()}</div>
+          <div style={{ fontSize: 11, color: "var(--faint)" }}>rounds in stock</div>
+        </div>
+
+        <div style={{ background: "var(--panel)", border: "1px solid var(--line)", borderRadius: "var(--radius)", padding: 20, cursor: "pointer", transition: "all 0.2s" }}
+          onClick={() => go("rangelog")}
+          onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.borderColor = "var(--accent)"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.borderColor = "var(--line)"; }}>
+          <div style={{ fontSize: 11, color: "var(--dim)", marginBottom: 8, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5 }}>Range Activity</div>
+          <div style={{ fontSize: 32, fontWeight: 700, color: "var(--accent)", marginBottom: 4 }}>{rangeVisits}</div>
+          <div style={{ fontSize: 11, color: "var(--faint)" }}>visits logged</div>
+        </div>
+
+        <div style={{ background: "var(--panel)", border: "1px solid var(--line)", borderRadius: "var(--radius)", padding: 20, cursor: "pointer", transition: "all 0.2s" }}
+          onClick={() => go("upkeep")}
+          onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.borderColor = overdueCount > 0 ? "var(--danger)" : "var(--accent)"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.borderColor = "var(--line)"; }}>
+          <div style={{ fontSize: 11, color: "var(--dim)", marginBottom: 8, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5 }}>Maintenance</div>
+          <div style={{ fontSize: 32, fontWeight: 700, color: overdueCount > 0 ? "var(--danger)" : "var(--green)", marginBottom: 4 }}>{overdueCount}</div>
+          <div style={{ fontSize: 11, color: "var(--faint)" }}>{overdueCount > 0 ? "tasks overdue" : "all up to date"}</div>
         </div>
       </div>
 
-      {/* Collection Insights */}
-      {topCaliber && (
-        <div style={{ background: "var(--panel)", border: "1px solid var(--line)", borderRadius: "var(--radius)", padding: 18, marginBottom: 32 }}>
-          <h3 style={{ fontSize: 14, fontFamily: "'Oswald',sans-serif", marginBottom: 12 }}>Collection Insights</h3>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 14 }}>
-            <div>
-              <span style={{ fontSize: 11, color: "var(--dim)" }}>Top Caliber</span>
-              <div style={{ fontSize: 18, fontWeight: 700, color: "var(--accent)", marginTop: 4 }}>{topCaliber[0]}</div>
-              <span style={{ fontSize: 11, color: "var(--dim)" }}>{topCaliber[1]} firearms</span>
-            </div>
-            <div>
-              <span style={{ fontSize: 11, color: "var(--dim)" }}>Collection Value</span>
-              <div style={{ fontSize: 18, fontWeight: 700, color: "var(--green)", marginTop: 4 }}>${totalValue.toLocaleString()}</div>
-              <span style={{ fontSize: 11, color: "var(--dim)" }}>across {activeFirearms} guns</span>
-            </div>
-            <div>
-              <span style={{ fontSize: 11, color: "var(--dim)" }}>Range Activity</span>
-              <div style={{ fontSize: 18, fontWeight: 700, color: "var(--info)", marginTop: 4 }}>{totalRoundsFired.toLocaleString()}</div>
-              <span style={{ fontSize: 11, color: "var(--dim)" }}>rounds downrange</span>
-            </div>
+      {/* Action Items - If Needed */}
+      {(overdueCount > 0 || suppliesNeeded > 0 || damagedFirearms > 0) && (
+        <div style={{ marginBottom: 40 }}>
+          <h3 style={{ fontSize: 14, fontFamily: "'Oswald',sans-serif", fontWeight: 600, marginBottom: 14, color: "var(--text)", textTransform: "uppercase", letterSpacing: 0.5 }}>⚠️ Attention Required</h3>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12 }}>
+            {overdueCount > 0 && (
+              <button onClick={() => go("upkeep")} style={{ background: "transparent", border: "2px solid var(--danger)", color: "var(--text)", borderRadius: "var(--radius)", padding: 16, cursor: "pointer", textAlign: "left", fontFamily: "inherit", transition: "all 0.2s" }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(184,84,80,0.1)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}>
+                <div style={{ fontSize: 11, color: "var(--dim)", marginBottom: 4, fontWeight: 600 }}>Maintenance Overdue</div>
+                <div style={{ fontSize: 20, fontWeight: 700, color: "var(--danger)" }}>{overdueCount}</div>
+              </button>
+            )}
+            {suppliesNeeded > 0 && (
+              <button onClick={() => go("supplies")} style={{ background: "transparent", border: "2px solid var(--gold)", color: "var(--text)", borderRadius: "var(--radius)", padding: 16, cursor: "pointer", textAlign: "left", fontFamily: "inherit", transition: "all 0.2s" }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(184,150,14,0.1)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}>
+                <div style={{ fontSize: 11, color: "var(--dim)", marginBottom: 4, fontWeight: 600 }}>Supplies to Buy</div>
+                <div style={{ fontSize: 20, fontWeight: 700, color: "var(--gold)" }}>{suppliesNeeded}</div>
+              </button>
+            )}
+            {damagedFirearms > 0 && (
+              <button onClick={() => go("firearms")} style={{ background: "transparent", border: "2px solid var(--danger)", color: "var(--text)", borderRadius: "var(--radius)", padding: 16, cursor: "pointer", textAlign: "left", fontFamily: "inherit", transition: "all 0.2s" }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(184,84,80,0.1)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}>
+                <div style={{ fontSize: 11, color: "var(--dim)", marginBottom: 4, fontWeight: 600 }}>Damaged Items</div>
+                <div style={{ fontSize: 20, fontWeight: 700, color: "var(--danger)" }}>{damagedFirearms}</div>
+              </button>
+            )}
           </div>
         </div>
       )}
 
-      {/* Safe Audit */}
-      <div style={{ background: "var(--panel)", border: "1px solid var(--line)", borderRadius: "var(--radius)", padding: 18 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", marginBottom: 12 }}>
-          <div>
-            <h3 style={{ fontSize: 14, fontFamily: "'Oswald',sans-serif" }}>Safe Audit</h3>
-            <p style={{ fontSize: 11, color: "var(--dim)", marginTop: 4 }}>Periodic audit of all firearms for inventory accuracy</p>
+      {/* Main Functions - Grid */}
+      <div style={{ marginBottom: 40 }}>
+        <h3 style={{ fontSize: 14, fontFamily: "'Oswald',sans-serif", fontWeight: 600, marginBottom: 14, color: "var(--text)", textTransform: "uppercase", letterSpacing: 0.5 }}>Core Functions</h3>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: 10 }}>
+          {[
+            { label: "Firearms", icon: "🔫", action: "firearms" },
+            { label: "Attachments", icon: "🎯", action: "attachments" },
+            { label: "Ammunition", icon: "📦", action: "ammunition" },
+            { label: "Gun Parts", icon: "⚙️", action: "gunparts" },
+            { label: "Up-Keep", icon: "🔧", action: "upkeep" },
+            { label: "Range Log", icon: "📊", action: "rangelog" },
+            { label: "Load Out", icon: "🎒", action: "loadout" },
+            { label: "Supplies", icon: "📋", action: "supplies" },
+            { label: "Insurance", icon: "📜", action: "insurance" },
+            { label: "For Sale", icon: "💰", action: "forsale" },
+          ].map(item => (
+            <button key={item.action} onClick={() => go(item.action)} style={{
+              background: "var(--panel)", border: "1px solid var(--line)", borderRadius: "var(--radius)", padding: 12, cursor: "pointer", fontFamily: "inherit", color: "var(--text)", display: "flex", flexDirection: "column", alignItems: "center", gap: 6, transition: "all 0.2s", fontSize: 12, fontWeight: 500
+            }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--accent)"; e.currentTarget.style.transform = "translateY(-1px)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--line)"; e.currentTarget.style.transform = "translateY(0)"; }}>
+              <div style={{ fontSize: 20 }}>{item.icon}</div>
+              {item.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Quick Links */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: 16 }}>
+        <div style={{ background: "var(--panel)", border: "1px solid var(--line)", borderRadius: "var(--radius)", padding: 20 }}>
+          <h4 style={{ fontSize: 12, color: "var(--dim)", fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 12 }}>Collection Summary</h4>
+          <div style={{ fontSize: 11, color: "var(--text)", lineHeight: 1.8 }}>
+            <div><strong>{activeFirearms}</strong> active firearms</div>
+            <div><strong>${totalValue.toLocaleString()}</strong> total value</div>
+            <div><strong>{totalRoundsFired.toLocaleString()}</strong> rounds fired</div>
+            {forSaleCount > 0 && <div style={{ color: "var(--gold)" }}><strong>{forSaleCount}</strong> for sale</div>}
           </div>
         </div>
-        <div style={{ fontSize: 12, color: "var(--dim)", marginBottom: 12 }}>Next audit due in ~90 days</div>
-        <button
-          onClick={() => alert("Safe Audit feature coming soon - will allow you to audit all firearms at once")}
-          style={{
-            background: "var(--info)",
-            color: "#fff",
-            border: "none",
-            borderRadius: 4,
-            padding: "10px 16px",
-            fontWeight: 600,
-            cursor: "pointer",
-          }}
-        >
-          🔍 Initiate Audit
-        </button>
+
+        <div style={{ background: "var(--panel)", border: "1px solid var(--line)", borderRadius: "var(--radius)", padding: 20 }}>
+          <h4 style={{ fontSize: 12, color: "var(--dim)", fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 12 }}>Support</h4>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <button onClick={() => go("support")} style={{ background: "transparent", border: "1px solid var(--line)", color: "var(--text)", borderRadius: 6, padding: "6px 12px", fontSize: 11, cursor: "pointer", fontFamily: "inherit" }}>Documentation</button>
+            {pendingTickets > 0 && <button onClick={() => go("tickets")} style={{ background: "var(--danger)", color: "#fff", border: "none", borderRadius: 6, padding: "6px 12px", fontSize: 11, cursor: "pointer", fontFamily: "inherit" }}>Issues ({pendingTickets})</button>}
+          </div>
+        </div>
       </div>
     </div>
+  );
+}
+
+function StatCard({ icon, label, value, subtext, onClick }) {
+  return (
+    <div
+      onClick={onClick}
+      style={{
+        background: "var(--panel)",
+        border: "1px solid var(--line)",
+        borderRadius: "var(--radius)",
+        padding: 16,
+        cursor: "pointer",
+        transition: "all 0.3s",
+        textAlign: "center"
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = "translateY(-4px)";
+        e.currentTarget.style.boxShadow = "0 8px 24px rgba(0,0,0,0.2)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = "translateY(0)";
+        e.currentTarget.style.boxShadow = "none";
+      }}
+    >
+      <div style={{ fontSize: 28, marginBottom: 8 }}>{icon}</div>
+      <div style={{ fontSize: 11, color: "var(--dim)", marginBottom: 4 }}>{label}</div>
+      <div style={{ fontSize: 24, fontWeight: 700, color: "var(--accent)", marginBottom: 4 }}>{value}</div>
+      <div style={{ fontSize: 11, color: "var(--dim)" }}>{subtext}</div>
+    </div>
+  );
+}
+
+function HighlightCard({ title, value, subtext, color, icon }) {
+  return (
+    <div style={{
+      background: "var(--panel)",
+      border: `2px solid ${color}`,
+      borderRadius: "var(--radius)",
+      padding: 20,
+      position: "relative",
+      overflow: "hidden"
+    }}>
+      <div style={{ position: "absolute", right: -10, top: -10, fontSize: 60, opacity: 0.1 }}>{icon}</div>
+      <div style={{ fontSize: 12, color: "var(--dim)", marginBottom: 8 }}>{title}</div>
+      <div style={{ fontSize: 28, fontWeight: 700, color, marginBottom: 4 }}>{value}</div>
+      <div style={{ fontSize: 11, color: "var(--dim)" }}>{subtext}</div>
+    </div>
+  );
+}
+
+function ActionButton({ onClick, icon, label, color }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        background: "var(--panel)",
+        border: `2px solid ${color}`,
+        color: "var(--text)",
+        borderRadius: "var(--radius)",
+        padding: 20,
+        cursor: "pointer",
+        fontWeight: 600,
+        fontSize: 13,
+        transition: "all 0.2s",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: 8
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.background = color;
+        e.currentTarget.style.color = "#fff";
+        e.currentTarget.style.transform = "scale(1.05)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.background = "var(--panel)";
+        e.currentTarget.style.color = "var(--text)";
+        e.currentTarget.style.transform = "scale(1)";
+      }}
+    >
+      <div style={{ fontSize: 24 }}>{icon}</div>
+      {label}
+    </button>
   );
 }
 
@@ -846,21 +874,55 @@ function Firearms({ data, setData, userId }) {
 
   return (
     <div className="tab">
+      <div style={{ marginBottom: 28 }}>
+        <h2 style={{ fontSize: 24, fontFamily: "'Oswald',sans-serif", fontWeight: 700, marginBottom: 4 }}>Firearms</h2>
+        <p style={{ fontSize: 13, color: "var(--dim)" }}>Manage your complete firearms collection. {table.view.filter(f => !f.for_sale && !f.sold).length} active, {table.view.filter(f => f.for_sale && !f.sold).length} for sale.</p>
+      </div>
       <Toolbar query={table.query} setQuery={table.setQuery} sortKey={table.sortKey} setSortKey={table.setSortKey} sortDir={table.sortDir} setSortDir={table.setSortDir} sortOptions={[{ key: "manufacturer", label: "Manufacturer" }, { key: "acquired", label: "Acquired" }, { key: "value", label: "Value" }]} placeholder="Search firearms..." addLabel="Add Firearm" onAdd={() => { setForm({ ...EMPTY }); setEditId("new"); }} />
       {table.view.length === 0 ? <Empty icon={Target} label="No Firearms" hint="Add your first firearm." /> :
         <div className="card-grid">{table.view.map(f => (
           <div key={f.id} className="firearm-card">
-            {f.photo_path && <img src={f.photo_path} alt="" style={{ width: "100%", height: 150, objectFit: "cover", borderRadius: 8, marginBottom: 10 }} onError={e => { e.target.style.display = "none"; }} />}
+            {f.photo_path && <img src={f.photo_path} alt="" className="card-image" onError={e => { e.target.style.display = "none"; }} />}
             <div className="card-head">
-              <div><strong>{f.nickname || f.manufacturer}</strong><span className="dim">{f.model}</span></div>
-              <div style={{ display: "flex", gap: 4 }}>
-                <button className="ghost small" onClick={() => openEdit(f)} style={{ padding: "4px 8px", fontSize: 11 }}>Edit</button>
-                <button className="ghost small" onClick={() => moveToSale(f.id)} style={{ padding: "4px 8px", fontSize: 11 }}>Sale</button>
-                <button className="ghost small" onClick={() => del(f.id)} style={{ padding: "4px 8px", fontSize: 11, color: "var(--danger)" }}>Delete</button>
+              <div>
+                <strong>{f.nickname || f.manufacturer}</strong>
+                <span className="dim">{f.model}</span>
               </div>
             </div>
-            <div className="card-body"><span><strong>{f.caliber}</strong> {f.type}</span><span className="dim">SN: {f.serial || "—"}</span><span className="dim">Acquired: {f.acquired || "—"}</span><span className="dim">Rounds Fired: {f.rounds_fired || 0}</span></div>
-            <div className="card-foot"><span>{money(f.value)}</span></div>
+            <div className="card-body">
+              <span>
+                <span className="label">Caliber</span>
+                <span className="value">{f.caliber}</span>
+              </span>
+              <span>
+                <span className="label">Type</span>
+                <span className="value">{f.type}</span>
+              </span>
+              <span>
+                <span className="label">Serial</span>
+                <span className="value">{f.serial || "—"}</span>
+              </span>
+              <span>
+                <span className="label">Acquired</span>
+                <span className="value">{f.acquired || "—"}</span>
+              </span>
+              <span>
+                <span className="label">Rounds Fired</span>
+                <span className="value">{f.rounds_fired || 0}</span>
+              </span>
+              <span>
+                <span className="label">Value</span>
+                <span className="value">{money(f.value)}</span>
+              </span>
+            </div>
+            <div className="card-footer">
+              <span className="card-price">{money(f.value)}</span>
+              <div className="card-actions">
+                <button onClick={() => openEdit(f)}>Edit</button>
+                <button onClick={() => moveToSale(f.id)}>Sale</button>
+                <button onClick={() => del(f.id)} className="danger">Delete</button>
+              </div>
+            </div>
           </div>
         ))}</div>}
       {editId && (
@@ -931,13 +993,46 @@ function Attachments({ data, setData, userId }) {
 
   return (
     <div className="tab">
+      <div style={{ marginBottom: 28 }}>
+        <h2 style={{ fontSize: 24, fontFamily: "'Oswald',sans-serif", fontWeight: 700, marginBottom: 4 }}>Attachments & Accessories</h2>
+        <p style={{ fontSize: 13, color: "var(--dim)" }}>Track scopes, holsters, lights, and more. {(data.accessories || []).length} total items.</p>
+      </div>
       <Toolbar query={table.query} setQuery={table.setQuery} sortKey={table.sortKey} setSortKey={table.setSortKey} sortDir={table.sortDir} setSortDir={table.setSortDir} sortOptions={[{ key: "type", label: "Type" }, { key: "brand", label: "Brand" }, { key: "value", label: "Value" }]} placeholder="Search attachments..." addLabel="Add Attachment" onAdd={() => { setForm({ ...EMPTY }); setEditId("new"); }} />
       {table.view.length === 0 ? <Empty icon={Package} label="No Attachments" hint="Add your first attachment." /> :
         <div className="card-grid">{table.view.map(a => (
           <div key={a.id} className="addon-card">
-            <div className="card-head"><div><strong>{a.name}</strong><span className="dim">{a.type}</span></div><div style={{ display: "flex", gap: 4 }}><button className="ghost small" onClick={() => { setForm(a); setEditId(a.id); }} style={{ padding: "4px 8px", fontSize: 11 }}>Edit</button><button className="ghost small" onClick={() => moveToSale(a.id)} style={{ padding: "4px 8px", fontSize: 11 }}>Sale</button><button className="ghost small" onClick={() => del(a.id)} style={{ padding: "4px 8px", fontSize: 11, color: "var(--danger)" }}>Delete</button></div></div>
-            <div className="card-body"><span>{a.brand || "—"}</span><span className="dim">Qty: {a.quantity || 0}</span><span className="dim">Assigned: {a.assigned_to || "—"}</span></div>
-            <div className="card-foot"><span>{money(a.value)}</span></div>
+            <div className="card-head">
+              <div>
+                <strong>{a.name}</strong>
+                <span className="dim">{a.type}</span>
+              </div>
+            </div>
+            <div className="card-body">
+              <span>
+                <span className="label">Brand</span>
+                <span className="value">{a.brand || "—"}</span>
+              </span>
+              <span>
+                <span className="label">Qty</span>
+                <span className="value">{a.quantity || 0}</span>
+              </span>
+              <span>
+                <span className="label">Value</span>
+                <span className="value">{money(a.value)}</span>
+              </span>
+              <span>
+                <span className="label">Assigned</span>
+                <span className="value">{a.assigned_to ? "Yes" : "No"}</span>
+              </span>
+            </div>
+            <div className="card-footer">
+              <span className="card-price">{money(a.value)}</span>
+              <div className="card-actions">
+                <button onClick={() => { setForm(a); setEditId(a.id); }}>Edit</button>
+                <button onClick={() => moveToSale(a.id)}>Sale</button>
+                <button onClick={() => del(a.id)} className="danger">Delete</button>
+              </div>
+            </div>
           </div>
         ))}</div>}
       {editId && (
@@ -994,13 +1089,45 @@ function Ammunition({ data, setData, userId }) {
 
   return (
     <div className="tab">
+      <div style={{ marginBottom: 28 }}>
+        <h2 style={{ fontSize: 24, fontFamily: "'Oswald',sans-serif", fontWeight: 700, marginBottom: 4 }}>Ammunition</h2>
+        <p style={{ fontSize: 13, color: "var(--dim)" }}>Track your ammo inventory by caliber. {(data.ammo || []).length} calibers, {(data.ammo || []).reduce((sum, a) => sum + (a.quantity || 0), 0).toLocaleString()} total rounds.</p>
+      </div>
       <Toolbar query={table.query} setQuery={table.setQuery} sortKey={table.sortKey} setSortKey={table.setSortKey} sortDir={table.sortDir} setSortDir={table.setSortDir} sortOptions={[{ key: "caliber", label: "Caliber" }, { key: "quantity", label: "Quantity" }]} placeholder="Search ammo..." addLabel="Add Ammo" onAdd={() => { setForm({ ...EMPTY }); setEditId("new"); }} />
       {table.view.length === 0 ? <Empty icon={Boxes} label="No Ammunition" hint="Log your ammo." /> :
         <div className="card-grid">{table.view.map(a => (
           <div key={a.id} className="ammo-card">
-            <div className="card-head"><div><strong>{a.caliber}</strong><span className="dim">{a.type}</span></div><div style={{ display: "flex", gap: 4 }}><button className="ghost small" onClick={() => { setForm(a); setEditId(a.id); }} style={{ padding: "4px 8px", fontSize: 11 }}>Edit</button><button className="ghost small" onClick={() => del(a.id)} style={{ padding: "4px 8px", fontSize: 11, color: "var(--danger)" }}>Delete</button></div></div>
-            <div className="card-body"><span className="dim">{a.brand || "—"} {a.grain || ""}</span><span className="dim">{a.quantity || 0} rounds — {a.location || "—"}</span></div>
-            <div className="card-foot"><span>{money(a.value)}</span></div>
+            <div className="card-head">
+              <div>
+                <strong>{a.caliber}</strong>
+                <span className="dim">{a.type}</span>
+              </div>
+            </div>
+            <div className="card-body">
+              <span>
+                <span className="label">Brand</span>
+                <span className="value">{a.brand || "—"}</span>
+              </span>
+              <span>
+                <span className="label">Grain</span>
+                <span className="value">{a.grain || "—"}</span>
+              </span>
+              <span>
+                <span className="label">Quantity</span>
+                <span className="value">{a.quantity || 0} rds</span>
+              </span>
+              <span>
+                <span className="label">Location</span>
+                <span className="value">{a.location || "—"}</span>
+              </span>
+            </div>
+            <div className="card-footer">
+              <span className="card-price">{money(a.value)}</span>
+              <div className="card-actions">
+                <button onClick={() => { setForm(a); setEditId(a.id); }}>Edit</button>
+                <button onClick={() => del(a.id)} className="danger">Delete</button>
+              </div>
+            </div>
           </div>
         ))}</div>}
       {editId && (
@@ -2186,28 +2313,141 @@ Provide numbered steps only, no preamble.`;
    SUPPORT
    ══════════════════════════════════════════════════════ */
 function Support() {
-  const docs = [
-    { cat: "Getting Started", items: [{ t: "Adding a Firearm", c: "Go to Firearms, click Add. Fill details, save, then upload photo." }, { t: "Dashboard", c: "Shows stats and quick links." }] },
-    { cat: "Inventory", items: [{ t: "Firearms", c: "Track value, serial, caliber. Move to For Sale when ready." }, { t: "Attachments", c: "Scopes, holsters, lights. Assign to firearms." }, { t: "Ammunition", c: "Track caliber, brand, grain, quantity, location." }] },
-    { cat: "Maintenance", items: [{ t: "Up-Keep", c: "Cleaning (30d), oiling (180d), tear-downs (365d), optic checks (180d), holster checks (30d). Click Clear when done." }] },
-    { cat: "Range", items: [{ t: "Range Log", c: "Log visits with firearm, range name, rounds. Range names auto-suggest." }, { t: "Load Outs", c: "Pre-built range kits. Select firearms. Track usage." }] },
+  const [search, setSearch] = useState("");
+  const [active, setActive] = useState(null);
+
+  const articles = [
+    // GETTING STARTED
+    { id: "gs-start", tab: "Getting Started", title: "Getting Started with The Gun Shed", icon: "🚀", content: "Welcome to The Gun Shed! This guide will walk you through setting up your firearms inventory from scratch. Start by navigating to the Firearms tab and clicking 'Add Firearm'. You'll be asked to enter details like manufacturer, model, serial number, caliber, and type. Fields marked with * are required. After saving, you can upload a photo of your firearm for quick visual reference. Your collection is secure and private to your account." },
+    { id: "gs-dashboard", tab: "Getting Started", title: "Understanding Your Dashboard", icon: "📊", content: "The Dashboard is your command center showing your collection at a glance. You'll see 4 primary stats: Active Firearms (total count), Total Value (combined collection value), Ammunition (total rounds in stock), and Range Activity (visits logged). Below that are action alerts if anything needs attention (maintenance overdue, supplies needed, damaged items). The Core Functions grid gives you quick access to all major tabs. Use this page to monitor your collection health and jump to tasks that need attention." },
+    { id: "gs-search", tab: "Getting Started", title: "Searching & Filtering", icon: "🔍", content: "Every tab (Firearms, Attachments, Ammunition) has a search bar at the top. Type partial text to filter results—searches work on manufacturer, model, caliber, brand, and more. You can also sort by clicking column headers. Most tabs support multiple sort options (Sort by Manufacturer, Value, Date, etc.). Use the Sort buttons next to the search bar to arrange by newest first, alphabetical, or highest value first. This makes finding that one gun or accessory quick and easy." },
+
+    // FIREARMS
+    { id: "fw-add", tab: "Firearms", title: "How to Add a Firearm", icon: "🔫", content: "Navigate to Firearms tab and click 'Add Firearm'. Fill in the following required fields: Manufacturer (select from our comprehensive list or type custom), Model, Serial Number, Caliber (select from predefined list), and Type (Pistol, Revolver, Rifle, Shotgun, Other). Optional fields include: Nickname (friendly name like 'My Duty Gun'), Acquisition Date, Current Value, Notes, Has Carry Holster checkbox, and Damaged checkbox. After saving, you can upload a high-quality photo. Photos help with quick visual identification when reviewing your collection." },
+    { id: "fw-edit", tab: "Firearms", title: "Editing Firearm Details", icon: "✏️", content: "Click 'Edit' on any firearm card to modify details. You can change any field except Serial Number (immutable for record integrity). To upload or replace a photo, open the Edit modal and use the photo upload button at the bottom. Photos are stored securely and displayed on your firearm card for quick visual reference. Changes save immediately when you click Save. If you made a mistake, just re-open and correct it." },
+    { id: "fw-value", tab: "Firearms", title: "Tracking Collection Value", icon: "💰", content: "Each firearm has a Value field. Enter the current market value or your original purchase price—whatever makes sense for your records. This is used to calculate your total collection value shown on the Dashboard. Regularly updating values helps you understand your collection's total worth. For insurance purposes, consider using market value. The system totals all values and displays them on your Dashboard and in the Insurance Manifest." },
+    { id: "fw-sale", tab: "Firearms", title: "Moving Firearms to For Sale", icon: "💵", content: "When you want to sell a firearm, click the 'Sale' button on its card. This moves the gun to the For Sale tab while keeping all history intact. You can track sale-listed date, update pricing, and move back to Active inventory if you change your mind. The For Sale tab shows all firearms currently being sold with separate pricing options. Once sold, mark it as sold to archive it." },
+    { id: "fw-delete", tab: "Firearms", title: "Deleting a Firearm", icon: "🗑️", content: "Click 'Delete' to permanently remove a firearm from your collection. This action is irreversible and removes all associated records. Only delete firearms you no longer need tracked. If you're selling it, use the 'Sale' button instead to preserve history. Deleted records cannot be recovered, so be certain before confirming the delete dialog." },
+
+    // ATTACHMENTS
+    { id: "att-add", tab: "Attachments", title: "Adding Attachments & Accessories", icon: "🎯", content: "Go to Attachments tab and click 'Add Attachment'. Select Type from our list: Scope, Red Dot, Holster, Light, Suppressor, Mag, Sling, or Other. Enter Name (e.g., 'Leupold 3-9x scope'), Brand, Quantity (for items like magazines where you might have multiples), and Value. Optional: Assign the attachment to a specific firearm using the 'Assigned To' dropdown. This helps track what's mounted on which gun vs. what's in storage. Add notes for specific details like mounting system, magnification, or condition." },
+    { id: "att-assign", tab: "Attachments", title: "Assigning Attachments to Firearms", icon: "🔗", content: "When adding or editing an attachment, use the 'Assigned To' dropdown to link it to a specific firearm. This creates a connection so you know which scope goes with which rifle. You can unassign an attachment anytime by editing it and clearing the assignment. Unassigned attachments still appear in your inventory—they're just not tied to a specific gun. This is useful for tracking spare parts and backup equipment." },
+    { id: "att-value", tab: "Attachments", title: "Tracking Attachment Value", icon: "💵", content: "Each attachment has a Value field. Enter the purchase price or current market value. High-end optics and suppressors can significantly increase your collection's total value. These values contribute to your total collection worth shown on the Dashboard. Regularly updating values keeps your insurance and valuation accurate. The system displays total attachment value in summary statistics." },
+
+    // AMMUNITION
+    { id: "ammo-add", tab: "Ammunition", title: "Logging Ammunition", icon: "📦", content: "Navigate to Ammunition tab and click 'Add Ammo'. Select Caliber from our comprehensive list (9mm, .45 ACP, .40 S&W, 5.56, 7.62x39, etc.). Select Type (FMJ, JHP, Softpoint, Tracers, etc.), enter Brand name, Grain weight, Quantity (total rounds), Location (safe, cabinet, range bag), and Value (per-round or bulk price). Ammunition tracking helps you understand your ammo stockpile and plan range sessions. Location tracking ensures you know where your ammo is stored." },
+    { id: "ammo-quantity", tab: "Ammunition", title: "Managing Quantity", icon: "📊", content: "The Quantity field tracks total rounds for each caliber and brand combination. When you buy ammo, create a new entry or edit existing entry and increase quantity. The Dashboard shows your total rounds across all calibers. Use this to plan purchases and avoid over-buying. If you shoot from a stash, you can edit the quantity down, but The Gun Shed doesn't track individual range session consumption—use the Range Log for that." },
+    { id: "ammo-location", tab: "Ammunition", title: "Storing & Tracking Ammo Location", icon: "📍", content: "The Location field is crucial for safety and organization. Common locations: Home Safe, Bedroom Cabinet, Range Bag, Locker, Vehicle, or custom locations. Storing ammo in a separate, secure location from firearms is a best practice. The Location field helps you quickly find ammo without searching. Update locations if you move ammo between storage spots. This also helps inventory audits." },
+
+    // UP-KEEP
+    { id: "uk-overview", tab: "Up-Keep", title: "Understanding Maintenance Schedules", icon: "🔧", content: "The Up-Keep tab enforces professional firearm maintenance with 5 scheduled tasks: Cleaning (every 30 days), Oiling (every 180 days), Tear Down (every 365 days), Optic Check (every 180 days), and Holster Check (every 30 days for carry guns only). The maintenance table shows each firearm and the status of each task. Green checkmark = up to date, Yellow 'Mark Complete' button = task is overdue. Each task has a description explaining its purpose. Following this schedule keeps firearms reliable and safe." },
+    { id: "uk-mark", tab: "Up-Keep", title: "Marking Maintenance Complete", icon: "✅", content: "When you complete a maintenance task, click the yellow 'Mark Complete' button. This updates the last-completed date to today. The button turns green and shows the completion date. If maintenance data was missing, the app assumes the firearm was added on acquisition date—first completion backfills from that date. You don't need to log details; just marking completion is enough to track when work was done and when the next cycle is due." },
+    { id: "uk-overdue", tab: "Up-Keep", title: "Managing Overdue Maintenance", icon: "⚠️", content: "The Dashboard shows overdue maintenance count. The Up-Keep tab highlights all overdue tasks with yellow 'Mark Complete' buttons. Overdue items appear at the top of your attention list. Regular maintenance keeps firearms safe and reliable. If you have many overdue items, prioritize the most critical guns first: carry guns get Holster and Cleaning priority, then all guns get Oiling, then Tear Downs for detailed inspection." },
+
+    // RANGE LOG
+    { id: "rl-log", tab: "Range Log", title: "Logging a Range Visit", icon: "📊", content: "Go to Range Log and click 'Log Visit'. Select the firearm(s) you shot, enter the Range Name (auto-suggestions appear after you type), select the date, enter Rounds fired for each gun, optionally select a Load Out if you used a pre-planned loadout, and add notes (e.g., 'tested new trigger'). Save to record the visit. Range visits are tracked to show your shooting activity over time and total rounds fired per gun. This data shows on your firearm card (total rounds fired) and your Dashboard." },
+    { id: "rl-rounds", tab: "Range Log", title: "Tracking Rounds Fired", icon: "🎯", content: "Each Range Log entry includes per-firearm Rounds fired count. This auto-increments the firearm's lifetime rounds-fired total. Over time, this builds a shooting history showing how much use each gun gets. Guns with high round counts may need more frequent cleaning. The total rounds-fired across your collection is displayed on the Dashboard. This helps assess wear and maintenance needs." },
+    { id: "rl-locations", tab: "Range Log", title: "Managing Range Locations", icon: "📍", content: "The Range Name field auto-suggests previously-entered ranges as you type. If you visit new ranges frequently, build up a list by entering them accurately. Consistent location names make data analysis easier later. Ranges appear in your history and can be sorted by frequency. If you test multiple ranges, tracking location helps you remember where you had the best experience and ammunition performance." },
+
+    // GUN PARTS
+    { id: "gp-add", tab: "Gun Parts", title: "Adding Gun Parts", icon: "⚙️", content: "Navigate to Gun Parts tab and click 'Add Part'. Select Part Type (Upper Receiver, Lower Receiver, Barrel, Trigger, etc.), enter Part Name, Manufacturer, Model, Purchase Date, Value, and Condition (Like New, Good, Fair, Poor). Optionally assign the part to a firearm using 'Assigned To' dropdown. This is essential for AR-15s and other modular firearms. You can track complete uppers/lowers separately or track individual components." },
+    { id: "gp-assign", tab: "Gun Parts", title: "Managing Part Inventory", icon: "🔧", content: "Gun Parts helps you organize modular firearms. You can track spare uppers, lowers, barrels, triggers separately or grouped. Assigning parts to firearms shows which parts are mounted vs. in storage. Unassigned parts are spares or backups. This is critical for AR-15 builders and enthusiasts who swap parts between builds. The Part Builds junction shows which configuration each gun has." },
+    { id: "gp-value", tab: "Gun Parts", title: "Tracking Part Value", icon: "💵", content: "High-end parts (match triggers, quality barrels, precision receivers) can cost hundreds each. Tracking value ensures you know your total investment in modular platforms. Part values contribute to your collection total and Insurance Manifest. Update values as prices change in the market. This helps justify insurance coverage amounts." },
+
+    // INSURANCE
+    { id: "ins-manifest", tab: "Insurance Manifest", title: "Using the Insurance Manifest", icon: "📋", content: "The Insurance Manifest is a comprehensive, printable list of all your firearms with serial numbers, calibers, acquisition dates, and values. This is essential for insurance claims and police recovery if stolen. Download the manifest monthly as a backup. Provide a copy to your insurance agent. Keep a copy in your safe deposit box. The manifest is auto-generated from your Firearms tab—no manual entry needed. It's the most important document for protecting your collection." },
+    { id: "ins-value", tab: "Insurance Manifest", title: "Insurance Valuation & Coverage", icon: "💰", content: "Your collection's total value is shown at the top of Insurance Manifest. Share this with your insurance company to ensure adequate coverage. Under-insuring leaves you vulnerable if items are stolen or damaged. Update firearms values regularly (annually recommended) to keep insurance current. The Manifest shows acquisition dates and current values separately. Use current value for insurance purposes. Review coverage limits yearly." },
+    { id: "ins-serial", tab: "Insurance Manifest", title: "Recording Serial Numbers Accurately", icon: "🔐", content: "Serial numbers are critical for insurance and police recovery. Enter them exactly as they appear on your firearm (include hyphens, letters, all characters). Accurate serial numbers allow law enforcement to recover stolen firearms. They're also matched to factory records if disputes arise. The Insurance Manifest includes all serial numbers for your agent. Double-check accuracy when entering." },
+
+    // SUPPLIES
+    { id: "sup-plan", tab: "Supplies Needed", title: "Planning Supply Purchases", icon: "📋", content: "Use Supplies Needed to track things you want to buy: cleaning kits, lubricants, ammunition cans, gun safes, holsters, magazines, storage solutions, etc. Click 'Add Supply', select Category (Maintenance, Storage, Safety, Optics, etc.), enter Name, Est. Cost, and Notes. This is a shopping list. As you buy items, mark them Purchased and record the Purchase Date. This helps you track spending and plan budgets for firearms-related equipment." },
+    { id: "sup-track", tab: "Supplies Needed", title: "Tracking Purchased Items", icon: "✅", content: "When you buy a supply item, click the 'Purchased' checkbox and set the Purchase Date. The item moves to 'Completed' section but stays in history. You can see how much you've spent on supplies over time. This helps identify spending patterns and budget planning. Completed items are archived but not deleted, preserving your purchase history." },
+
+    // FOR SALE
+    { id: "fs-list", tab: "For Sale", title: "Listing Firearms for Sale", icon: "💵", content: "When you want to sell a firearm, go to Firearms, click the 'Sale' button. The firearm moves to For Sale tab with all original details preserved. Use the For Sale tab to manage sale price (can differ from original value), sale date listed, and sale notes. You can move items back to Active inventory if you change your mind. Once sold, mark as Sold to archive the transaction." },
+    { id: "fs-manage", tab: "For Sale", title: "Managing Sale Listings", icon: "📊", content: "The For Sale tab shows your active and completed sales. Track sale dates, asking prices, and final sale prices. This history helps you understand market values and pricing strategies. You can see which items sold quickly vs. took longer. This data informs future selling decisions and helps you price accurately." },
+
+    // LOADOUT
+    { id: "lo-create", tab: "Load Out", title: "Creating a Load Out", icon: "🎒", content: "Create pre-planned loadouts for range days. Click 'Add Load Out', name it (e.g., '3-Gun Competition Kit'), select firearms for this kit, optionally add notes (e.g., 'x2 mags, holster, range bag included'). Mark favorite if this is your go-to setup. Save. When you go to the range, select this loadout in your Range Log to remember what guns you brought. Load Outs help you prepare and document your range sessions." },
+    { id: "lo-manage", tab: "Load Out", title: "Managing Your Loadouts", icon: "📋", content: "View all Load Outs in the Load Out tab. Each shows the firearms included, notes, and usage count. Mark favorites for quick access. Edit to add/remove firearms. Delete unused loadouts. Load Outs are essentially 'canned' range day kits. Use them to pre-plan what you're bringing so you don't forget anything. The usage counter shows which loadouts get used most often." },
   ];
+
+  const filtered = articles.filter(a => 
+    !search || a.title.toLowerCase().includes(search.toLowerCase()) || a.tab.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const tabs = ["Getting Started", "Firearms", "Attachments", "Ammunition", "Up-Keep", "Range Log", "Gun Parts", "Insurance Manifest", "Supplies Needed", "Load Out", "For Sale"];
+
   return (
     <div className="tab">
-      <div style={{ display: "grid", gap: 24 }}>
-        {docs.map(d => (
-          <div key={d.cat}>
-            <h3 style={{ fontFamily: "'Oswald',sans-serif", fontSize: 16, marginBottom: 12, color: "var(--accent)" }}>{d.cat}</h3>
-            <div style={{ display: "grid", gap: 8 }}>
-              {d.items.map((it, i) => (
-                <details key={i} style={{ background: "var(--panel)", border: "1px solid var(--line)", borderRadius: "var(--radius)" }}>
-                  <summary style={{ padding: "12px 14px", cursor: "pointer", fontWeight: 500 }}><ChevronRight size={14} /> {it.t}</summary>
-                  <div style={{ padding: "12px 14px", borderTop: "1px solid var(--line)", color: "var(--dim)", lineHeight: 1.6, fontSize: 13 }}>{it.c}</div>
-                </details>
-              ))}
+      <div style={{ marginBottom: 32 }}>
+        <h2 style={{ fontSize: 24, fontFamily: "'Oswald',sans-serif", fontWeight: 700, marginBottom: 8 }}>The Gun Shed Help Center</h2>
+        <p style={{ fontSize: 13, color: "var(--dim)", marginBottom: 20 }}>Comprehensive guides for every feature. Click any article to learn more.</p>
+        <input 
+          type="text" 
+          placeholder="Search help articles..." 
+          value={search} 
+          onChange={(e) => setSearch(e.target.value)}
+          style={{ width: "100%", maxWidth: 400, padding: "10px 12px", background: "var(--panel)", border: "1px solid var(--line)", borderRadius: "var(--radius)", color: "var(--text)", fontFamily: "inherit", fontSize: 13, outline: "none" }}
+        />
+      </div>
+
+      {search ? (
+        <div style={{ display: "grid", gap: 12 }}>
+          <div style={{ fontSize: 12, color: "var(--dim)" }}>Found {filtered.length} article{filtered.length !== 1 ? 's' : ''}</div>
+          {filtered.map(article => (
+            <div key={article.id} style={{ background: "var(--panel)", border: "1px solid var(--line)", borderRadius: "var(--radius)", padding: 14, cursor: "pointer", transition: "all 0.2s" }}
+              onClick={() => setActive(active === article.id ? null : article.id)}
+              onMouseEnter={(e) => e.currentTarget.style.borderColor = "var(--accent)"}
+              onMouseLeave={(e) => e.currentTarget.style.borderColor = "var(--line)"}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", marginBottom: active === article.id ? 12 : 0 }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 10, color: "var(--dim)", fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 4 }}>{article.tab}</div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text)" }}>{article.icon} {article.title}</div>
+                </div>
+                <div style={{ fontSize: 20, opacity: 0.5 }}>{active === article.id ? '✕' : '→'}</div>
+              </div>
+              {active === article.id && (
+                <div style={{ fontSize: 12, color: "var(--dim)", lineHeight: 1.8, paddingTop: 12, borderTop: "1px solid var(--line)" }}>{article.content}</div>
+              )}
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
+      ) : (
+        <div style={{ display: "grid", gap: 28 }}>
+          {tabs.map(tab => (
+            <div key={tab}>
+              <h3 style={{ fontSize: 14, fontFamily: "'Oswald',sans-serif", fontWeight: 600, color: "var(--text)", marginBottom: 12, textTransform: "uppercase", letterSpacing: 0.5 }}>{tab}</h3>
+              <div style={{ display: "grid", gap: 8 }}>
+                {articles.filter(a => a.tab === tab).map(article => (
+                  <div key={article.id} style={{ background: "var(--panel)", border: "1px solid var(--line)", borderRadius: "var(--radius)", padding: 14, cursor: "pointer", transition: "all 0.2s" }}
+                    onClick={() => setActive(active === article.id ? null : article.id)}
+                    onMouseEnter={(e) => e.currentTarget.style.borderColor = "var(--accent)"}
+                    onMouseLeave={(e) => e.currentTarget.style.borderColor = "var(--line)"}
+                  >
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", marginBottom: active === article.id ? 12 : 0 }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text)" }}>{article.icon} {article.title}</div>
+                      </div>
+                      <div style={{ fontSize: 18, opacity: 0.5, marginLeft: 8 }}>{active === article.id ? '✕' : '→'}</div>
+                    </div>
+                    {active === article.id && (
+                      <div style={{ fontSize: 12, color: "var(--dim)", lineHeight: 1.8, paddingTop: 12, borderTop: "1px solid var(--line)" }}>{article.content}</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div style={{ marginTop: 40, padding: 20, background: "var(--panel)", border: "1px solid var(--line)", borderRadius: "var(--radius)", textAlign: "center" }}>
+        <div style={{ fontSize: 12, color: "var(--dim)", marginBottom: 12 }}>Can't find what you're looking for?</div>
+        <button style={{ background: "var(--accent)", color: "#fff", border: "none", borderRadius: 6, padding: "8px 16px", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", fontSize: 12 }}>
+          Submit Support Request
+        </button>
       </div>
     </div>
   );
@@ -2470,10 +2710,10 @@ function Styles() {
 @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Archivo:wght@400;500;600;700&display=swap');
 @keyframes spin { from { transform: rotate(0) } to { transform: rotate(360deg) } }
 :root {
-  --bg: #0f0e0a; --bg2: #1a1815; --panel: #232118; --panel2: #2d2820;
-  --line: #3d372a; --line2: #4a4435; --text: #f0ebe0; --dim: #a8a494; --faint: #7d7969;
-  --accent: #d67c3f; --accent-d: #b85f2d; --green: #5e9178; --gold: #c4a94a; --danger: #c1544f;
-  --radius: 12px;
+  --bg: #1a1916; --bg2: #242219; --panel: #2d2925; --panel2: #363230;
+  --line: #45413d; --line2: #52483f; --text: #f5f3f0; --dim: #a89f93; --faint: #7a7068;
+  --accent: #6b9e4f; --accent-d: #5a8741; --green: #4a8f3e; --gold: #b8960e; --danger: #b85450;
+  --radius: 10px;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { background: var(--bg); font-family: 'Archivo', system-ui, sans-serif; color: var(--text); }
@@ -2506,14 +2746,113 @@ body { background: var(--bg); font-family: 'Archivo', system-ui, sans-serif; col
 .dashboard-welcome p { color: var(--dim); font-size: 14px; }
 .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 24px; }
 .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
-.firearm-card, .log-card, .addon-card, .ammo-card, .sale-card, .loadout-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; transition: all .15s; }
-.firearm-card:hover, .log-card:hover, .addon-card:hover, .ammo-card:hover, .sale-card:hover, .loadout-card:hover { transform: translateY(-2px); border-color: var(--line2); }
-.card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
-.card-head div { display: flex; flex-direction: column; gap: 2px; }
-.card-head strong { font-size: 14px; color: var(--text); }
-.card-body { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; font-size: 12px; color: var(--text); }
-.card-body .dim { color: var(--dim); }
-.card-foot { display: flex; justify-content: space-between; align-items: center; padding-top: 8px; border-top: 1px solid var(--line); font-size: 12px; color: var(--dim); }
+.firearm-card, .log-card, .addon-card, .ammo-card, .sale-card, .loadout-card { 
+  background: var(--panel); 
+  border: 1px solid var(--line); 
+  border-radius: var(--radius); 
+  padding: 0;
+  transition: all .15s; 
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.firearm-card:hover, .log-card:hover, .addon-card:hover, .ammo-card:hover, .sale-card:hover, .loadout-card:hover { 
+  transform: translateY(-2px); 
+  border-color: var(--accent);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.card-image { width: 100%; height: 140px; object-fit: cover; background: var(--panel2); display: block; }
+.card-head { 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: flex-start; 
+  gap: 12px; 
+  padding: 14px 16px 0 16px;
+  margin-bottom: 0;
+}
+.card-head div { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 2px;
+  flex: 1;
+}
+.card-head strong { 
+  font-size: 15px; 
+  color: var(--text);
+  line-height: 1.2;
+}
+.card-head .dim { 
+  font-size: 12px;
+  color: var(--dim);
+  font-weight: 500;
+}
+.card-body { 
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 12px 16px;
+  font-size: 12px;
+  color: var(--text);
+}
+.card-body > span {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.card-body .label {
+  font-size: 10px;
+  color: var(--dim);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.card-body .value {
+  font-size: 13px;
+  color: var(--text);
+  font-weight: 600;
+}
+.card-body .dim { 
+  color: var(--dim);
+  font-size: 11px;
+}
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-top: 1px solid var(--line);
+  background: var(--panel2);
+}
+.card-price {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+}
+.card-actions {
+  display: flex;
+  gap: 6px;
+}
+.card-actions button {
+  padding: 4px 10px;
+  font-size: 11px;
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--dim);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: inherit;
+  font-weight: 500;
+}
+.card-actions button:hover {
+  background: var(--line);
+  color: var(--text);
+}
+.card-actions button.danger:hover {
+  background: rgba(193,84,79,0.2);
+  color: var(--danger);
+  border-color: var(--danger);
+}
 .empty { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 70px 20px; color: var(--faint); text-align: center; border: 1px dashed var(--line2); border-radius: var(--radius); }
 .empty strong { font-size: 15px; color: var(--text); font-family: 'Oswald', sans-serif; }
 .login-wrap { min-height: 100vh; display: grid; place-items: center; position: relative; padding: 20px; overflow: hidden; }
